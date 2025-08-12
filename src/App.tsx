@@ -25,6 +25,12 @@ const en = {
     gallery: "Gallery",
     join: "Join",
   },
+  const heroPhotos = [
+  "/WechatIMG1020.jpg",
+  "/WechatIMG1021.jpg",
+  "/哭嫁2.jpg",
+  "/女书字（绣）.JPG",
+  ];
   hero: {
     title: "Sydney University Nüshu Society",
     subtitle:
