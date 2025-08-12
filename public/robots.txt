@@ -1,1 +1,4 @@
+User-agent: *
+Allow: /
 
+Sitemap: https://sydney-n-shu-society.vercel.app/sitemap.xml
