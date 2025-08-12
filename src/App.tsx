@@ -18,17 +18,18 @@ const en = {
     heading: "About the Society",
     body:
       "We are a student-led society at the University of Sydney dedicated to the study and contemporary practice of Nüshu, a women-associated script from Jiangyong, Hunan. Our work connects philology, material culture, gender history, and artistic practice. We host reading groups, calligraphy sessions, and public talks in collaboration with scholars and community custodians.",
-const sampleEvents = [
-  {
-    title: "Welcome Seminar: Introduction to Nüshu",
-    date: "2025-08-14",
-    time: "18:00 – 20:00",
-    venue: "Law Library, Mezzanine, Law Group Study Room M107",
-    tags: ["Seminar", "Social"],
-    blurb:
-      "A welcoming session to introduce Nüshu for the semester, including an overview, brief practice, and social time.",
   },
-];
+  events: {
+  heading: "Events",
+  list: [
+    {
+      title: "Welcome Seminar: Introduction to Nüshu",
+      location: "Law Library, Law Group Study Room M107",
+      date: "2025-08-14",
+      time: "18:00 – 20:00",
+      description: "A welcoming session to introduce Nüshu for the semester, including an overview, practice, and social time.",
+      tags: ["Seminar", "Social"]
+    },
   resources: {
     heading: "Resources",
     blurb:
@@ -59,11 +60,17 @@ const zh = {
   about: {
     heading: "关于我们",
     body:
-      "本社团由悉尼大学学生发起，关注湖南江永女书的历史文献与当代表达，跨越文字学、性别史与物质文化研究，并开展书写工作坊与学术讲座。欢迎不同学科背景的同学加入。",
+      "本社团由悉尼大学学生发起，关注女书的历史语境与当代表达，跨越语言学、性别史与物质文化研究，开展艺术工作坊与学术讲座。欢迎不同学科背景的同学加入。",
   },
   events: {
     heading: "活动预告",
-    empty: "暂时没有排期，欢迎订阅邮件以获取更新。",
+      title_zh: "迎新研讨会：女书简史",
+      location_zh: "USYD, Law Library, Law Group Study Room M107",
+      date: "2025-08-14",
+      time: "18:00 – 20:00",
+      description_zh: "本学期的欢迎活动，介绍女书的起源、历史及其文化意涵，包括概述、交流和讨论时间。",
+      tags: ["Seminar", "Social"]
+    },
   },
   resources: {
     heading: "学习资源",
