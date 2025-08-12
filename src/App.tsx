@@ -18,14 +18,17 @@ const en = {
     heading: "About the Society",
     body:
       "We are a student-led society at the University of Sydney dedicated to the study and contemporary practice of Nüshu, a women-associated script from Jiangyong, Hunan. Our work connects philology, material culture, gender history, and artistic practice. We host reading groups, calligraphy sessions, and public talks in collaboration with scholars and community custodians.",
-```javascript
-title: "Welcome Seminar: Introduction to Nüshu",
-location: "Law Library, Mezzanine, Law Group Study Room M107",
-date: "2025-08-14",
-time: "18:00 – 20:00",
-description: "A welcoming session to introduce Nüshu for the semester, including an overview, practice, and social time.",
-tags: ["Seminar", "Social"]
-```
+const sampleEvents = [
+  {
+    title: "Welcome Seminar: Introduction to Nüshu",
+    date: "2025-08-14",
+    time: "18:00 – 20:00",
+    venue: "Law Library, Mezzanine, Law Group Study Room M107",
+    tags: ["Seminar", "Social"],
+    blurb:
+      "A welcoming session to introduce Nüshu for the semester, including an overview, brief practice, and social time.",
+  },
+];
   resources: {
     heading: "Resources",
     blurb:
