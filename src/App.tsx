@@ -13,9 +13,7 @@ import {
   PenTool,
 } from "lucide-react";
 
-// Simple, dependency-light starter for a society site.
-// TailwindCSS classes are used for styling; no external UI kit required to run.
-
+// Text content
 const en = {
   nav: {
     home: "Home",
@@ -25,12 +23,6 @@ const en = {
     gallery: "Gallery",
     join: "Join",
   },
-  const heroPhotos = [
-  "/WechatIMG1020.jpg",
-  "/WechatIMG1021.jpg",
-  "/哭嫁2.jpg",
-  "/女书字（绣）.JPG",
-  ];
   hero: {
     title: "Sydney University Nüshu Society",
     subtitle:
@@ -96,7 +88,7 @@ const zh = {
   footer: { legal: "© " + new Date().getFullYear() + " 悉尼大学女书社" },
 };
 
-// Your events rendered on the page
+// Events shown on the page
 const sampleEvents = [
   {
     title: "Welcome Seminar: Introduction to Nüshu",
@@ -246,6 +238,14 @@ export default function NusHuSocietySite() {
   const t = useMemo(() => (lang === "en" ? en : zh), [lang]);
   const [submitted, setSubmitted] = useState(false);
 
+  // Photos pulled from the public/ folder
+  const heroPhotos = [
+    "/WechatIMG1020.jpg",
+    "/WechatIMG1021.jpg",
+    "/crying-bride2.jpg",
+    "/nushu-embroidery.JPG",
+  ];
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
@@ -324,24 +324,24 @@ export default function NusHuSocietySite() {
                 <span>Open to all faculties</span>
               </div>
             </motion.div>
+
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               className="relative"
             >
-              <div className="aspect-[4/3] rounded-3xl border bg-white shadow-sm overflow-hidden">
+              <div className="aspect-[4/3] rounded-3xl border bg-white shadow-sm overflow-hidden relative">
                 <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-1 p-4">
                   {Array.from({ length: 9 }).map((_, i) => (
-                    <div
+                    <img
                       key={i}
-                      className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border"
+                      src={heroPhotos[i % heroPhotos.length]}
+                      alt=""
+                      loading="lazy"
+                      className="w-full h-full object-cover rounded-xl border"
                     />
                   ))}
-                </div>
-                <div className="absolute bottom-4 right-4 flex items-center gap-2 text-sm bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border">
-                  <Images className="w-4 h-4" />
-                  <span>Replace with society photos</span>
                 </div>
               </div>
             </motion.div>
