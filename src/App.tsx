@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -11,6 +11,7 @@ import {
   Calendar,
   Globe,
   PenTool,
+  Heart,
 } from "lucide-react";
 
 // Text content
@@ -87,6 +88,10 @@ const zh = {
   },
   footer: { legal: "© " + new Date().getFullYear() + " 悉尼大学女书社" },
 };
+
+// Make a stable localStorage key for each event title
+const toKey = (title: string) =>
+  "wish:" + title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 // Events shown on the page
 const sampleEvents = [
@@ -202,14 +207,52 @@ function Section({
   );
 }
 
+// Event card with heart button and per-browser count
 function EventCard({ e }: { e: any }) {
+  const [count, setCount] = useState<number>(0);
+  const [liked, setLiked] = useState<boolean>(false);
+  const key = toKey(e.title);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem(key);
+    if (saved) {
+      try {
+        const { c, l } = JSON.parse(saved);
+        if (typeof c === "number") setCount(c);
+        if (typeof l === "boolean") setLiked(l);
+      } catch {}
+    }
+  }, [key]);
+
+  function persist(nextCount: number, nextLiked: boolean) {
+    window.localStorage.setItem(key, JSON.stringify({ c: nextCount, l: nextLiked }));
+  }
+
+  function toggleHeart() {
+    const nextLiked = !liked;
+    const nextCount = nextLiked ? count + 1 : Math.max(0, count - 1);
+    setLiked(nextLiked);
+    setCount(nextCount);
+    persist(nextCount, nextLiked);
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="rounded-2xl border p-6 shadow-sm bg-white"
+      className="relative rounded-2xl border p-6 shadow-sm bg-white"
     >
+      <button
+        aria-label="Wish to join"
+        onClick={toggleHeart}
+        className={`absolute right-4 top-4 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition
+          ${liked ? "bg-rose-600 text-white border-rose-600" : "bg-white text-gray-700 hover:bg-gray-50"}`}
+      >
+        <Heart className={`w-4 h-4 ${liked ? "fill-current" : ""}`} />
+        <span>{count}</span>
+      </button>
+
       <div className="flex flex-wrap items-center gap-3 justify-between">
         <h3 className="text-lg font-medium">{e.title}</h3>
         <div className="flex items-center gap-2 text-sm">
