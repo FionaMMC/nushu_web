@@ -14,20 +14,14 @@ import {
   Heart,
 } from "lucide-react";
 
-// Text content
+/* =========================================
+   Text content (EN / ZH)
+========================================= */
 const en = {
-  nav: {
-    home: "Home",
-    about: "About",
-    events: "Events",
-    resources: "Resources",
-    gallery: "Gallery",
-    join: "Join",
-  },
+  nav: { home: "Home", about: "About", events: "Events", resources: "Resources", gallery: "Gallery", join: "Join" },
   hero: {
     title: "Sydney University Nüshu Society",
-    subtitle:
-      "Researching, practicing, and sharing the living art of Nüshu through study, workshops, and community.",
+    subtitle: "Researching, practicing, and sharing the living art of Nüshu through study, workshops, and community.",
     ctaPrimary: "See upcoming events",
     ctaSecondary: "What is Nüshu?",
   },
@@ -36,10 +30,7 @@ const en = {
     body:
       "We are a student-led society at the University of Sydney dedicated to the study and contemporary practice of Nüshu, a women-associated script from Jiangyong, Hunan. Our work connects philology, material culture, gender history, and artistic practice. We host reading groups, calligraphy sessions, and public talks in collaboration with scholars and community custodians.",
   },
-  events: {
-    heading: "Events",
-    empty: "No events are scheduled yet. Check back soon or subscribe below.",
-  },
+  events: { heading: "Events", empty: "No events are scheduled yet. Check back soon or subscribe below." },
   resources: {
     heading: "Resources",
     blurb:
@@ -48,17 +39,14 @@ const en = {
   gallery: { heading: "Gallery" },
   join: {
     heading: "Join and Contact",
-    blurb:
-      "Become a member, volunteer, or propose a collaboration. Complete the form and we will follow up by email.",
+    blurb: "Become a member, volunteer, or propose a collaboration. Complete the form and we will follow up by email.",
     name: "Full name",
     email: "Email",
     msg: "Your message",
     submit: "Send",
     thanks: "Thank you. We will be in touch shortly.",
   },
-  footer: {
-    legal: "© " + new Date().getFullYear() + " Sydney University Nüshu Society",
-  },
+  footer: { legal: "© " + new Date().getFullYear() + " Sydney University Nüshu Society" },
 };
 
 const zh = {
@@ -89,11 +77,12 @@ const zh = {
   footer: { legal: "© " + new Date().getFullYear() + " 悉尼大学女书社" },
 };
 
-// Make a stable localStorage key for each event title
+/* =========================================
+   Events + helpers
+========================================= */
 const toKey = (title: string) =>
   "wish:" + title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-// Events shown on the page
 const sampleEvents = [
   {
     title: "Welcome Seminar: Introduction to Nüshu",
@@ -110,32 +99,19 @@ const sampleEvents = [
     time: "16:00",
     venue: "Fisher Library, Learning Studio 1",
     tags: ["Workshop"],
-    blurb:
-      "Technique drills, stroke analysis, and stitched-letter forms on cloth.",
+    blurb: "Technique drills, stroke analysis, and stitched-letter forms on cloth.",
   },
 ];
 
 const resources = [
-  {
-    title: "Starter Primer (PDF)",
-    href: "#",
-    desc: "A two-page primer on phonology, ductus, and materials.",
-    icon: BookOpen,
-  },
-  {
-    title: "Reading List",
-    href: "#",
-    desc: "Key scholarship and ethnographies for deeper study.",
-    icon: Globe,
-  },
-  {
-    title: "Workshop Sheet",
-    href: "#",
-    desc: "Printable grid and exemplar strokes for practice.",
-    icon: PenTool,
-  },
+  { title: "Starter Primer (PDF)", href: "#", desc: "A two-page primer on phonology, ductus, and materials.", icon: BookOpen },
+  { title: "Reading List", href: "#", desc: "Key scholarship and ethnographies for deeper study.", icon: Globe },
+  { title: "Workshop Sheet", href: "#", desc: "Printable grid and exemplar strokes for practice.", icon: PenTool },
 ];
 
+/* =========================================
+   UI atoms
+========================================= */
 function LanguageSwitch({
   lang,
   setLang,
@@ -148,9 +124,7 @@ function LanguageSwitch({
       <button
         onClick={() => setLang("en")}
         className={`px-3 py-1 rounded-full text-sm border ${
-          lang === "en"
-            ? "bg-gray-900 text-white border-gray-900"
-            : "bg-white border-gray-300"
+          lang === "en" ? "bg-gray-900 text-white border-gray-900" : "bg-white border-gray-300"
         }`}
       >
         EN
@@ -158,9 +132,7 @@ function LanguageSwitch({
       <button
         onClick={() => setLang("zh")}
         className={`px-3 py-1 rounded-full text-sm border ${
-          lang === "zh"
-            ? "bg-gray-900 text-white border-gray-900"
-            : "bg-white border-gray-300"
+          lang === "zh" ? "bg-gray-900 text-white border-gray-900" : "bg-white border-gray-300"
         }`}
       >
         中文
@@ -170,17 +142,11 @@ function LanguageSwitch({
 }
 
 function Tag({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center rounded-full px-3 py-1 text-xs border border-gray-300">
-      {children}
-    </span>
-  );
+  return <span className="inline-flex items-center rounded-full px-3 py-1 text-xs border border-gray-300">{children}</span>;
 }
-
 function Container({ children }: { children: React.ReactNode }) {
   return <div className="mx-auto w-full max-w-6xl px-6">{children}</div>;
 }
-
 function Section({
   id,
   title,
@@ -197,9 +163,7 @@ function Section({
       <Container>
         <div className="flex items-center gap-3 mb-8">
           {Icon && <Icon className="w-6 h-6" />}
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
-            {title}
-          </h2>
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">{title}</h2>
         </div>
         {children}
       </Container>
@@ -207,8 +171,16 @@ function Section({
   );
 }
 
-// Event card with heart button and per-browser count
-function EventCard({ e }: { e: any }) {
+/* =========================================
+   Event card with heart + per-browser count
+========================================= */
+function EventCard({
+  e,
+  onDelta,
+}: {
+  e: any;
+  onDelta: (delta: number) => void; // +1 / -1 to update total
+}) {
   const [count, setCount] = useState<number>(0);
   const [liked, setLiked] = useState<boolean>(false);
   const key = toKey(e.title);
@@ -230,10 +202,12 @@ function EventCard({ e }: { e: any }) {
 
   function toggleHeart() {
     const nextLiked = !liked;
-    const nextCount = nextLiked ? count + 1 : Math.max(0, count - 1);
+    const delta = nextLiked ? 1 : -1;
+    const nextCount = Math.max(0, count + delta);
     setLiked(nextLiked);
     setCount(nextCount);
     persist(nextCount, nextLiked);
+    onDelta(delta);
   }
 
   return (
@@ -276,18 +250,32 @@ function EventCard({ e }: { e: any }) {
   );
 }
 
+/* =========================================
+   Page
+========================================= */
 export default function NusHuSocietySite() {
   const [lang, setLang] = useState<"en" | "zh">("en");
   const t = useMemo(() => (lang === "en" ? en : zh), [lang]);
   const [submitted, setSubmitted] = useState(false);
 
-  // Photos pulled from the public/ folder
-  const heroPhotos = [
-    "/WechatIMG1020.jpg",
-    "/WechatIMG1021.jpg",
-    "/crying-bride2.jpg",
-    "/nushu-embroidery.JPG",
-  ];
+  // hero photos (place these files in /public)
+  const heroPhotos = ["/WechatIMG1020.jpg", "/WechatIMG1021.jpg", "/crying-bride2.jpg", "/nushu-embroidery.JPG"];
+
+  // compute and keep a per-browser total wishes across all events
+  const initialTotal = useMemo(() => {
+    return sampleEvents.reduce((sum, ev) => {
+      try {
+        const raw = window.localStorage.getItem(toKey(ev.title));
+        if (!raw) return sum;
+        const obj = JSON.parse(raw);
+        return sum + (typeof obj?.c === "number" ? obj.c : 0);
+      } catch {
+        return sum;
+      }
+    }, 0);
+  }, []);
+  const [totalWishes, setTotalWishes] = useState<number>(initialTotal);
+  const handleDelta = (delta: number) => setTotalWishes((x) => Math.max(0, x + delta));
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -299,6 +287,7 @@ export default function NusHuSocietySite() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f8f7f5] to-white text-gray-900">
+      {/* Header */}
       <header className="sticky top-0 z-30 backdrop-blur bg-white/80 border-b">
         <Container>
           <div className="flex items-center justify-between h-16">
@@ -307,30 +296,19 @@ export default function NusHuSocietySite() {
               <span className="font-semibold">Nüshu Society</span>
             </a>
             <nav className="hidden md:flex items-center gap-8 text-sm">
-              <a href="#home" className="hover:underline">
-                {t.nav.home}
-              </a>
-              <a href="#about" className="hover:underline">
-                {t.nav.about}
-              </a>
-              <a href="#events" className="hover:underline">
-                {t.nav.events}
-              </a>
-              <a href="#resources" className="hover:underline">
-                {t.nav.resources}
-              </a>
-              <a href="#gallery" className="hover:underline">
-                {t.nav.gallery}
-              </a>
-              <a href="#join" className="hover:underline">
-                {t.nav.join}
-              </a>
+              <a href="#home" className="hover:underline">{t.nav.home}</a>
+              <a href="#about" className="hover:underline">{t.nav.about}</a>
+              <a href="#events" className="hover:underline">{t.nav.events}</a>
+              <a href="#resources" className="hover:underline">{t.nav.resources}</a>
+              <a href="#gallery" className="hover:underline">{t.nav.gallery}</a>
+              <a href="#join" className="hover:underline">{t.nav.join}</a>
             </nav>
             <LanguageSwitch lang={lang} setLang={setLang} />
           </div>
         </Container>
       </header>
 
+      {/* Hero */}
       <section id="home" className="relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none" aria-hidden>
           <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-rose-100/60 blur-3xl" />
@@ -338,27 +316,12 @@ export default function NusHuSocietySite() {
         </div>
         <Container>
           <div className="py-24 md:py-36 grid md:grid-cols-2 gap-10 items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <h1 className="text-3xl md:text-5xl font-semibold tracking-tight leading-tight">
-                {t.hero.title}
-              </h1>
-              <p className="mt-5 text-lg text-gray-700 leading-relaxed">
-                {t.hero.subtitle}
-              </p>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+              <h1 className="text-3xl md:text-5xl font-semibold tracking-tight leading-tight">{t.hero.title}</h1>
+              <p className="mt-5 text-lg text-gray-700 leading-relaxed">{t.hero.subtitle}</p>
               <div className="mt-8 flex flex-wrap gap-4">
-                <a
-                  href="#events"
-                  className="px-5 py-3 rounded-xl bg-gray-900 text-white"
-                >
-                  {t.hero.ctaPrimary}
-                </a>
-                <a href="#about" className="px-5 py-3 rounded-xl border">
-                  {t.hero.ctaSecondary}
-                </a>
+                <a href="#events" className="px-5 py-3 rounded-xl bg-gray-900 text-white">{t.hero.ctaPrimary}</a>
+                <a href="#about" className="px-5 py-3 rounded-xl border">{t.hero.ctaSecondary}</a>
               </div>
               <div className="mt-6 flex items-center gap-4 text-sm text-gray-600">
                 <Users className="w-4 h-4" />
@@ -368,12 +331,7 @@ export default function NusHuSocietySite() {
               </div>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="relative"
-            >
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }} className="relative">
               <div className="aspect-[4/3] rounded-3xl border bg-white shadow-sm overflow-hidden relative">
                 <div className="absolute inset-0 grid grid-cols-3 grid-rows-3 gap-1 p-4">
                   {Array.from({ length: 9 }).map((_, i) => (
@@ -392,54 +350,48 @@ export default function NusHuSocietySite() {
         </Container>
       </section>
 
+      {/* About */}
       <Section id="about" title={t.about.heading} icon={Feather}>
         <div className="grid md:grid-cols-3 gap-8 items-start">
-          <p className="md:col-span-2 text-gray-800 leading-relaxed">
-            {t.about.body}
-          </p>
+          <p className="md:col-span-2 text-gray-800 leading-relaxed">{t.about.body}</p>
           <div className="rounded-2xl border p-6 shadow-sm bg-white">
-            <div className="flex items-center gap-2 text-sm">
-              <BookOpen className="w-4 h-4" />
-              <span>Research and practice</span>
-            </div>
-            <div className="mt-2 text-sm text-gray-600">
-              Reading groups, calligraphy, and public humanities.
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Tag>English</Tag>
-              <Tag>中文</Tag>
-              <Tag>Workshops</Tag>
-            </div>
+            <div className="flex items-center gap-2 text-sm"><BookOpen className="w-4 h-4" /><span>Research and practice</span></div>
+            <div className="mt-2 text-sm text-gray-600">Reading groups, calligraphy, and public humanities.</div>
+            <div className="mt-4 flex flex-wrap gap-2"><Tag>English</Tag><Tag>中文</Tag><Tag>Workshops</Tag></div>
           </div>
         </div>
       </Section>
 
-      <Section id="events" title={t.events.heading} icon={Calendar}>
-        <div className="grid md:grid-cols-2 gap-6">
-          {sampleEvents.length === 0 && (
-            <div className="text-gray-600">{t.events.empty}</div>
-          )}
-          {sampleEvents.map((e) => (
-            <EventCard key={e.title} e={e} />
-          ))}
-        </div>
-      </Section>
+      {/* Events with total wishes (per browser) */}
+      <section id="events" className="py-20">
+        <Container>
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-6 h-6" />
+              <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">{t.events.heading}</h2>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm bg-white shadow-sm">
+              <Heart className="w-4 h-4 text-rose-600" />
+              <span className="text-gray-700">Total wishes on this device: <strong>{totalWishes}</strong></span>
+            </div>
+          </div>
 
+          <div className="grid md:grid-cols-2 gap-6">
+            {sampleEvents.length === 0 && <div className="text-gray-600">{t.events.empty}</div>}
+            {sampleEvents.map((e) => (
+              <EventCard key={e.title} e={e} onDelta={handleDelta} />
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* Resources */}
       <Section id="resources" title={t.resources.heading} icon={BookOpen}>
-        <p className="text-gray-800 leading-relaxed max-w-3xl">
-          {t.resources.blurb}
-        </p>
+        <p className="text-gray-800 leading-relaxed max-w-3xl">{t.resources.blurb}</p>
         <div className="mt-8 grid md:grid-cols-3 gap-6">
           {resources.map((r) => (
-            <a
-              key={r.title}
-              href={r.href}
-              className="group rounded-2xl border p-6 bg-white shadow-sm hover:shadow transition"
-            >
-              <div className="flex items-center gap-3">
-                <r.icon className="w-5 h-5" />
-                <h3 className="font-medium">{r.title}</h3>
-              </div>
+            <a key={r.title} href={r.href} className="group rounded-2xl border p-6 bg-white shadow-sm hover:shadow transition">
+              <div className="flex items-center gap-3"><r.icon className="w-5 h-5" /><h3 className="font-medium">{r.title}</h3></div>
               <p className="mt-2 text-sm text-gray-700">{r.desc}</p>
               <div className="mt-3 text-sm underline">Open</div>
             </a>
@@ -447,89 +399,48 @@ export default function NusHuSocietySite() {
         </div>
       </Section>
 
+      {/* Gallery */}
       <Section id="gallery" title={t.gallery.heading} icon={Images}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-square rounded-2xl border bg-white overflow-hidden"
-            >
+            <div key={i} className="aspect-square rounded-2xl border bg-white overflow-hidden">
               <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100" />
             </div>
           ))}
         </div>
       </Section>
 
+      {/* Join */}
       <Section id="join" title={t.join.heading} icon={Mail}>
         <div className="grid md:grid-cols-2 gap-8 items-start">
           <p className="text-gray-800 leading-relaxed">{t.join.blurb}</p>
-          <form
-            onSubmit={handleSubmit}
-            className="rounded-2xl border p-6 bg-white shadow-sm"
-          >
+          <form onSubmit={handleSubmit} className="rounded-2xl border p-6 bg-white shadow-sm">
             {submitted ? (
-              <div className="text-green-700 font-medium">
-                {t.join.thanks}
-              </div>
+              <div className="text-green-700 font-medium">{t.join.thanks}</div>
             ) : (
               <>
-                <label className="block text-sm font-medium">
-                  {t.join.name}
-                </label>
-                <input
-                  name="name"
-                  required
-                  className="mt-1 w-full rounded-xl border px-3 py-2"
-                  placeholder="Jane Doe"
-                />
-                <label className="block text-sm font-medium mt-4">
-                  {t.join.email}
-                </label>
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  className="mt-1 w-full rounded-xl border px-3 py-2"
-                  placeholder="you@uni.sydney.edu.au"
-                />
-                <label className="block text-sm font-medium mt-4">
-                  {t.join.msg}
-                </label>
-                <textarea
-                  name="message"
-                  rows={4}
-                  className="mt-1 w-full rounded-xl border px-3 py-2"
-                  placeholder="Tell us how you want to participate"
-                />
-                <button
-                  type="submit"
-                  className="mt-5 px-5 py-3 rounded-xl bg-gray-900 text-white"
-                >
-                  {t.join.submit}
-                </button>
+                <label className="block text-sm font-medium">{t.join.name}</label>
+                <input name="name" required className="mt-1 w-full rounded-xl border px-3 py-2" placeholder="Jane Doe" />
+                <label className="block text-sm font-medium mt-4">{t.join.email}</label>
+                <input name="email" type="email" required className="mt-1 w-full rounded-xl border px-3 py-2" placeholder="you@uni.sydney.edu.au" />
+                <label className="block text-sm font-medium mt-4">{t.join.msg}</label>
+                <textarea name="message" rows={4} className="mt-1 w-full rounded-xl border px-3 py-2" placeholder="Tell us how you want to participate" />
+                <button type="submit" className="mt-5 px-5 py-3 rounded-xl bg-gray-900 text-white">{t.join.submit}</button>
               </>
             )}
           </form>
         </div>
       </Section>
 
+      {/* Footer */}
       <footer className="border-t py-10 text-sm text-gray-600">
         <Container>
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Feather className="w-4 h-4" />
-              <span>{t.footer.legal}</span>
-            </div>
+            <div className="flex items-center gap-2"><Feather className="w-4 h-4" /><span>{t.footer.legal}</span></div>
             <div className="flex items-center gap-4">
-              <a href="#join" className="underline">
-                Contact
-              </a>
-              <a href="#resources" className="underline">
-                Resources
-              </a>
-              <a href="#events" className="underline">
-                Events
-              </a>
+              <a href="#join" className="underline">Contact</a>
+              <a href="#resources" className="underline">Resources</a>
+              <a href="#events" className="underline">Events</a>
             </div>
           </div>
         </Container>
