@@ -192,25 +192,25 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           const eventData = req.body;
           
           // Debug logging
-          console.log('POST /events - Request body:', JSON.stringify(eventData, null, 2));
+          console.log('POST /events - Request body keys:', Object.keys(eventData || {}));
           console.log('POST /events - Body type:', typeof eventData);
-          console.log('POST /events - Body is array:', Array.isArray(eventData));
           
           // Validate and prepare event data
-          if (!eventData || typeof eventData !== 'object') {
-            console.log('POST /events - Validation failed: Invalid event data');
+          if (!eventData || typeof eventData !== 'object' || Array.isArray(eventData)) {
+            console.log('POST /events - Validation failed: Invalid event data type');
             return res.status(400).json({ 
               success: false, 
-              message: 'Invalid event data' 
+              message: 'Invalid event data - must be object' 
             });
           }
 
           // Ensure required fields exist
           const requiredFields = ['title', 'date', 'time', 'venue', 'blurb'];
           for (const field of requiredFields) {
-            if (!eventData[field]) {
-              console.log(`POST /events - Missing required field: ${field}`);
-              console.log(`POST /events - Field value:`, eventData[field]);
+            const value = eventData[field];
+            if (!value || (typeof value === 'string' && value.trim() === '')) {
+              console.log(`POST /events - Missing/empty required field: ${field}`);
+              console.log(`POST /events - Field value:`, value);
               return res.status(400).json({ 
                 success: false, 
                 message: `Missing required field: ${field}` 
