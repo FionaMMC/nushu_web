@@ -298,7 +298,8 @@ async function handler(req: VercelRequest, res: VercelResponse) {
               },
               recentActivity: {
                 events: recentEvents,
-                contacts: recentContacts
+                contacts: recentContacts,
+                images: [] // TODO: Add image management when implemented
               }
             }
           });
