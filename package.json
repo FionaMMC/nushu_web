@@ -6,22 +6,46 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "tsx src/server.ts",
+    "server:dev": "tsx --watch src/server.ts",
+    "dev:full": "concurrently \"npm run server:dev\" \"npm run dev\"",
+    "start": "node dist/server.js",
+    "seed:events": "tsx src/scripts/seedEvents.ts",
+    "vercel-build": "npm run build"
   },
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "@types/sharp": "^0.31.1",
+    "aws-sdk": "^2.1692.0",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
     "framer-motion": "^11.0.0",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.460.0",
+    "mongoose": "^8.18.0",
+    "multer": "^2.0.2",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
     "@types/node": "^20.11.30",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
+    "@vercel/node": "^5.3.19",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
+    "concurrently": "^9.2.1",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.7",
+    "tsx": "^4.20.5",
     "typescript": "^5.4.5",
     "vite": "^5.2.0"
   }

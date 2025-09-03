@@ -12,7 +12,11 @@ import {
   Globe,
   PenTool,
   Heart,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
+import { useUpcomingEvents, useApiWithFallback, useGalleryImages } from "./hooks/useApi";
+import { Event as ApiEvent, GalleryImage, eventsApi, galleryApi, contactsApi } from "./services/api";
 
 /* =========================================
    Text content (EN / ZH)
@@ -108,64 +112,6 @@ const zh = {
 const toKey = (title: string) =>
   "wish:" + title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-// Event management system - can be easily connected to a CMS or API
-interface Event {
-  id: string;
-  title: string;
-  date: string;
-  time: string;
-  venue: string;
-  tags: string[];
-  blurb: string;
-  status: 'upcoming' | 'ongoing' | 'completed';
-  registrationLink?: string;
-  capacity?: number;
-  currentRegistrations?: number;
-}
-
-// Sample events - this can be replaced with API calls or CMS integration
-const createEventsData = (): Event[] => [
-  {
-    id: "welcome-seminar-2025",
-    title: "Welcome Seminar: Introduction to Nüshu",
-    date: "2025-08-14",
-    time: "18:00 – 20:00",
-    venue: "Law Library, Law Group Study Room M107",
-    tags: ["Seminar", "Social"],
-    blurb: "A welcoming session to introduce Nüshu for the semester, including an overview, practice, and social time.",
-    status: "upcoming",
-    registrationLink: "#",
-    capacity: 30,
-    currentRegistrations: 12
-  },
-  {
-    id: "calligraphy-workshop-sept",
-    title: "Calligraphy Workshop: Slender Gold to Nüshu Lines",
-    date: "2025-09-05",
-    time: "16:00 – 18:30",
-    venue: "Fisher Library, Learning Studio 1",
-    tags: ["Workshop", "Hands-on"],
-    blurb: "Technique drills, stroke analysis, and stitched-letter forms on cloth. Materials provided.",
-    status: "upcoming",
-    registrationLink: "#",
-    capacity: 20,
-    currentRegistrations: 18
-  },
-  {
-    id: "reading-group-oct",
-    title: "Reading Group: Women's Scripts in Historical Context",
-    date: "2025-10-12",
-    time: "14:00 – 16:00",
-    venue: "Quadrangle Building, Room S414",
-    tags: ["Reading Group", "Academic"],
-    blurb: "Discussion of recent scholarship on women's writing systems across cultures, with focus on Nüshu documentation.",
-    status: "upcoming",
-    capacity: 15,
-    currentRegistrations: 7
-  }
-];
-
-const sampleEvents = createEventsData();
 
 const resources = [
   {
@@ -271,7 +217,7 @@ function EventCard({
   event,
   onDelta,
 }: {
-  event: Event;
+  event: ApiEvent;
   onDelta: (delta: number) => void;
 }) {
   const [count, setCount] = useState<number>(0);
@@ -435,6 +381,22 @@ export default function NusHuSocietySite() {
   const [lang, setLang] = useState<"en" | "zh">("en");
   const t = useMemo(() => (lang === "en" ? en : zh), [lang]);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Fetch events from database
+  const { 
+    events = [], 
+    loading: eventsLoading, 
+    error: eventsError
+  } = useUpcomingEvents(10);
+
+  // Fetch gallery images
+  const {
+    images: galleryImages,
+    loading: galleryLoading,
+    error: galleryError
+  } = useGalleryImages({ limit: 8, sort: 'priority' });
 
   // hero photos (place these files in /public)
   const heroPhotos = [
@@ -446,7 +408,7 @@ export default function NusHuSocietySite() {
 
   // compute and keep a per-browser total wishes across all events
   const initialTotal = useMemo(() => {
-    return sampleEvents.reduce((sum, ev) => {
+    return events.reduce((sum: number, ev: ApiEvent) => {
       try {
         const raw = window.localStorage.getItem(toKey(ev.title));
         if (!raw) return sum;
@@ -456,17 +418,59 @@ export default function NusHuSocietySite() {
         return sum;
       }
     }, 0);
-  }, []);
-  const [totalWishes, setTotalWishes] = useState<number>(initialTotal);
+  }, [events]);
+  
+  const [totalWishes, setTotalWishes] = useState<number>(0);
+  
+  // Update total wishes when events or initial calculation changes
+  useEffect(() => {
+    setTotalWishes(initialTotal);
+  }, [initialTotal]);
+  
   const handleDelta = (delta: number) =>
     setTotalWishes((x) => Math.max(0, x + delta));
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
     const payload = Object.fromEntries(form.entries());
-    console.log("Form submitted:", payload);
-    setSubmitted(true);
+    
+    // Validate required fields
+    const name = payload.name as string;
+    const email = payload.email as string;
+    const message = payload.message as string;
+    
+    if (!name?.trim() || !email?.trim() || !message?.trim()) {
+      setSubmitError("Please fill in all required fields.");
+      return;
+    }
+    
+    setSubmitting(true);
+    setSubmitError(null);
+    
+    try {
+      await contactsApi.submit({
+        name: name.trim(),
+        email: email.trim(),
+        message: message.trim()
+      });
+      
+      setSubmitted(true);
+      console.log("Contact form submitted successfully");
+    } catch (error) {
+      console.error("Contact form submission error:", error);
+      setSubmitError(
+        "Failed to send message. Please try again or contact us directly."
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function resetForm() {
+    setSubmitted(false);
+    setSubmitError(null);
+    setSubmitting(false);
   }
 
   return (
@@ -643,7 +647,7 @@ export default function NusHuSocietySite() {
                 <div className="inline-flex items-center gap-3 px-6 py-3 bg-nushu-terracotta text-white">
                   <Users className="w-5 h-5" />
                   <span className="text-sm font-medium">
-                    {sampleEvents.reduce((sum, e) => sum + (e.currentRegistrations || 0), 0)} registered
+                    {events.reduce((sum: number, e: ApiEvent) => sum + (e.currentRegistrations || 0), 0)} registered
                   </span>
                 </div>
               </div>
@@ -670,7 +674,15 @@ export default function NusHuSocietySite() {
 
           {/* Events grid */}
           <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-8 lg:gap-12">
-            {sampleEvents.length === 0 ? (
+            {eventsLoading ? (
+              <div className="lg:col-span-2 xl:col-span-3">
+                <div className="text-center py-16">
+                  <Loader2 className="w-16 h-16 text-nushu-sage/30 mx-auto mb-6 animate-spin" />
+                  <h3 className="text-xl font-serif text-nushu-sage mb-4">Loading Events...</h3>
+                  <p className="text-nushu-sage/70">Please wait while we fetch the latest events.</p>
+                </div>
+              </div>
+            ) : events.length === 0 ? (
               <div className="lg:col-span-2 xl:col-span-3">
                 <div className="text-center py-16">
                   <Calendar className="w-16 h-16 text-nushu-sage/30 mx-auto mb-6" />
@@ -686,31 +698,21 @@ export default function NusHuSocietySite() {
                 </div>
               </div>
             ) : (
-              sampleEvents.map((event) => (
-                <EventCard key={event.id} event={event} onDelta={handleDelta} />
+              events.map((event: ApiEvent) => (
+                <EventCard key={event._id} event={event} onDelta={handleDelta} />
               ))
             )}
-          </div>
-          
-          {/* Add event interface for admins - placeholder for future enhancement */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-16 p-6 bg-white border border-dashed border-nushu-sage/30">
-              <div className="text-center">
-                <h3 className="text-lg font-medium text-nushu-sage mb-2">Event Management</h3>
-                <p className="text-sm text-nushu-sage/70 mb-4">
-                  This interface will allow authorized users to add, edit, and manage events.
-                </p>
-                <div className="flex justify-center gap-4">
-                  <button className="px-4 py-2 bg-nushu-sage text-white text-sm font-medium hover:bg-nushu-sage/90 transition-colors">
-                    + Add Event
-                  </button>
-                  <button className="px-4 py-2 bg-white text-nushu-sage border border-nushu-sage/20 text-sm font-medium hover:bg-nushu-cream transition-colors">
-                    Manage Events
-                  </button>
+            
+            {/* Show error indicator if API fails */}
+            {eventsError && (
+              <div className="lg:col-span-2 xl:col-span-3">
+                <div className="flex items-center justify-center gap-2 mt-6 px-4 py-2 bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg">
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Unable to load events. Please try again later.</span>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </Container>
       </section>
 
@@ -788,14 +790,67 @@ export default function NusHuSocietySite() {
       {/* Gallery */}
       <Section id="gallery" title={t.gallery.heading} icon={Images}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="aspect-[3/4] bg-nushu-cream overflow-hidden"
-            >
-              <div className="w-full h-full bg-gradient-to-b from-nushu-sage/10 to-nushu-terracotta/10" />
+          {galleryLoading ? (
+            // Loading state
+            Array.from({ length: 8 }).map((_, i) => (
+              <div
+                key={i}
+                className="aspect-[3/4] bg-nushu-cream overflow-hidden animate-pulse"
+              >
+                <div className="w-full h-full bg-gradient-to-b from-nushu-sage/10 to-nushu-terracotta/10" />
+              </div>
+            ))
+          ) : galleryImages.length > 0 ? (
+            // Display actual images
+            galleryImages.map((image) => (
+              <motion.div
+                key={image._id}
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="aspect-[3/4] bg-nushu-cream overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300"
+              >
+                <img
+                  src={image.thumbnailUrl}
+                  alt={image.alt}
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    // Fallback to placeholder if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.parentElement?.classList.add('bg-gradient-to-b', 'from-nushu-sage/10', 'to-nushu-terracotta/10');
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                  <div className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center p-4">
+                    <h4 className="font-medium text-sm mb-1">{image.title}</h4>
+                    {image.description && (
+                      <p className="text-xs opacity-90">{image.description.substring(0, 80)}{image.description.length > 80 ? '...' : ''}</p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          ) : galleryError ? (
+            // Error state
+            <div className="col-span-full">
+              <div className="text-center py-16">
+                <AlertCircle className="w-16 h-16 text-nushu-sage/30 mx-auto mb-6" />
+                <h3 className="text-xl font-serif text-nushu-sage mb-4">Gallery Unavailable</h3>
+                <p className="text-nushu-sage/70 mb-8">Unable to load gallery images at this time.</p>
+              </div>
             </div>
-          ))}
+          ) : (
+            // No images state
+            <div className="col-span-full">
+              <div className="text-center py-16">
+                <Images className="w-16 h-16 text-nushu-sage/30 mx-auto mb-6" />
+                <h3 className="text-xl font-serif text-nushu-sage mb-4">Gallery Coming Soon</h3>
+                <p className="text-nushu-sage/70">We're preparing beautiful images to share with you.</p>
+              </div>
+            </div>
+          )}
         </div>
       </Section>
 
@@ -947,7 +1002,7 @@ export default function NusHuSocietySite() {
                       {t.join.thanks}
                     </p>
                     <button
-                      onClick={() => setSubmitted(false)}
+                      onClick={resetForm}
                       className="text-nushu-terracotta hover:text-nushu-terracotta/80 font-medium transition-colors"
                     >
                       Send another message
@@ -962,6 +1017,14 @@ export default function NusHuSocietySite() {
                       <p className="text-nushu-sage/70 text-sm">
                         All fields are required
                       </p>
+                      {submitError && (
+                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                            <p className="text-red-700 text-sm">{submitError}</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-6">
@@ -1058,9 +1121,17 @@ export default function NusHuSocietySite() {
                     <div className="pt-6">
                       <button
                         type="submit"
-                        className="w-full bg-nushu-terracotta text-white py-4 px-8 font-medium hover:bg-nushu-terracotta/90 transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-nushu-terracotta focus:ring-offset-2"
+                        disabled={submitting}
+                        className="w-full bg-nushu-terracotta text-white py-4 px-8 font-medium hover:bg-nushu-terracotta/90 transition-all duration-300 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-nushu-terracotta focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                       >
-                        {t.join.submit} →
+                        {submitting ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>Sending...</span>
+                          </div>
+                        ) : (
+                          <>{t.join.submit} →</>
+                        )}
                       </button>
                     </div>
                   </form>
