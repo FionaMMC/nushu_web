@@ -28,15 +28,4 @@
       "destination": "/index.html"
     }
   ],
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "JWT_SECRET": "@jwt_secret",
-    "ADMIN_USERNAME": "@admin_username", 
-    "ADMIN_PASSWORD_HASH": "@admin_password_hash",
-    "AWS_ACCESS_KEY_ID": "@aws_access_key_id",
-    "AWS_SECRET_ACCESS_KEY": "@aws_secret_access_key",
-    "AWS_REGION": "@aws_region",
-    "S3_BUCKET": "@s3_bucket",
-    "NODE_ENV": "production"
-  }
 }
