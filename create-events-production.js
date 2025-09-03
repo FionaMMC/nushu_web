@@ -1,27 +1,9 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 // Event model definition (same as in API)
-interface IEvent extends mongoose.Document {
-  title: string;
-  date: string;
-  time: string;
-  venue: string;
-  tags: string[];
-  blurb: string;
-  status: 'upcoming' | 'ongoing' | 'completed';
-  registrationLink?: string;
-  capacity?: number;
-  currentRegistrations?: number;
-  priority: number;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const EventSchema = new mongoose.Schema<IEvent>({
+const EventSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, 'Event title is required'],
@@ -32,7 +14,7 @@ const EventSchema = new mongoose.Schema<IEvent>({
     type: String,
     required: [true, 'Event date is required'],
     validate: {
-      validator: function(v: string) {
+      validator: function(v) {
         return /^\d{4}-\d{2}-\d{2}$/.test(v);
       },
       message: 'Date must be in YYYY-MM-DD format'
@@ -92,27 +74,7 @@ const EventSchema = new mongoose.Schema<IEvent>({
   versionKey: false
 });
 
-const Event = mongoose.models.Event || mongoose.model<IEvent>('Event', EventSchema);
-
-// Database connection helper
-let isConnected = false;
-
-const connectDatabase = async () => {
-  if (isConnected) return;
-  
-  if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI environment variable is not defined');
-  }
-
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    isConnected = true;
-    console.log('✅ Database connected');
-  } catch (error) {
-    console.error('❌ Database connection failed:', error);
-    throw error;
-  }
-};
+const Event = mongoose.models.Event || mongoose.model('Event', EventSchema);
 
 const seedEvents = [
   {
@@ -158,47 +120,43 @@ const seedEvents = [
   }
 ];
 
-async function seedDatabase() {
+async function createProductionEvents() {
   try {
-    console.log('Starting database seeding process...');
-    console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
-    console.log('Connecting to database...');
-    await connectDatabase();
-    console.log('Database connection successful!');
-    
+    console.log('Connecting to production database...');
+    console.log('MongoDB URI:', process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('Connected successfully!');
+    console.log('Database name:', mongoose.connection.db.databaseName);
+
+    // Clear existing events
     console.log('Clearing existing events...');
     const deleteResult = await Event.deleteMany({});
     console.log(`Deleted ${deleteResult.deletedCount} existing events`);
-    
-    console.log('Seeding events...');
-    console.log(`About to insert ${seedEvents.length} events`);
-    const insertResult = await Event.insertMany(seedEvents);
-    console.log(`Successfully inserted ${insertResult.length} events`);
-    
-    console.log('✅ Database seeded successfully!');
-    console.log(`📊 Added ${seedEvents.length} events to the database`);
-    
-    const events = await Event.find().sort({ priority: -1, date: 1 });
-    console.log('\n📅 Events in database:');
-    events.forEach(event => {
-      console.log(`  - ${event.title} (${event.date}) - ${event.status}`);
+
+    // Create new events
+    console.log('Creating events...');
+    const results = [];
+    for (const eventData of seedEvents) {
+      const event = new Event(eventData);
+      const saved = await event.save();
+      results.push(saved);
+      console.log(`✅ Created: ${saved.title}`);
+    }
+
+    // Verify
+    const allEvents = await Event.find({});
+    console.log(`📊 Total events in database: ${allEvents.length}`);
+    allEvents.forEach(event => {
+      console.log(`  - ${event.title} (${event.date}) - Status: ${event.status}, Active: ${event.isActive}`);
     });
-    
-    console.log('Closing database connection...');
+
     await mongoose.disconnect();
-    console.log('Database connection closed. Exiting...');
-    process.exit(0);
+    console.log('✅ Production events created successfully!');
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
-    console.error('Error details:', error);
+    console.error('❌ Error:', error);
     await mongoose.disconnect();
-    process.exit(1);
   }
+  process.exit(0);
 }
 
-// Run if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seedDatabase();
-}
-
-export default seedDatabase;
+createProductionEvents();
