@@ -19,8 +19,8 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
     blurb: event?.blurb || '',
     status: event?.status || 'upcoming' as const,
     registrationLink: event?.registrationLink || '',
-    capacity: event?.capacity || '',
-    currentRegistrations: event?.currentRegistrations || '',
+    capacity: event?.capacity?.toString() || '',
+    currentRegistrations: event?.currentRegistrations?.toString() || '',
     priority: event?.priority || 0,
     isActive: event?.isActive ?? true
   });
@@ -84,8 +84,8 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
       const eventData = {
         ...formData,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-        capacity: formData.capacity ? Number(formData.capacity) : undefined,
-        currentRegistrations: formData.currentRegistrations ? Number(formData.currentRegistrations) : undefined,
+        capacity: formData.capacity && formData.capacity.toString().trim() !== '' ? Number(formData.capacity) : undefined,
+        currentRegistrations: formData.currentRegistrations && formData.currentRegistrations.toString().trim() !== '' ? Number(formData.currentRegistrations) : undefined,
       };
 
       await onSave(eventData as any);
