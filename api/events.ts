@@ -106,8 +106,6 @@ const connectDatabase = async () => {
     await mongoose.connect(process.env.MONGODB_URI);
     isConnected = true;
     console.log('✅ Database connected');
-    console.log('Database name:', mongoose.connection.db.databaseName);
-    console.log('Connection state:', mongoose.connection.readyState);
   } catch (error) {
     console.error('❌ Database connection failed:', error);
     throw error;
@@ -140,17 +138,6 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           }
           return res.json({ success: true, data: { event } });
         } else {
-          // Debug: Check what's actually in the database
-          const allEventsDebug = await Event.find({});
-          console.log('API Debug: Total events in database (no filters):', allEventsDebug.length);
-          if (allEventsDebug.length > 0) {
-            console.log('API Debug: Sample event:', {
-              title: allEventsDebug[0].title,
-              status: allEventsDebug[0].status,
-              isActive: allEventsDebug[0].isActive
-            });
-          }
-          
           // Get all events with filters
           const {
             status = 'upcoming',
@@ -171,9 +158,6 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           const pageNum = parseInt(page as string) || 1;
           const skip = (pageNum - 1) * limitNum;
 
-          console.log('API Debug: Filters applied:', filters);
-          console.log('API Debug: Limit:', limitNum, 'Skip:', skip);
-          
           const [events, total] = await Promise.all([
             Event.find(filters)
               .sort({ date: 1, priority: -1 })
@@ -181,9 +165,6 @@ async function handler(req: VercelRequest, res: VercelResponse) {
               .skip(skip),
             Event.countDocuments(filters)
           ]);
-          
-          console.log('API Debug: Found', events.length, 'events, total count:', total);
-          console.log('API Debug: First event:', events[0]?.title || 'None');
 
           return res.json({
             success: true,
