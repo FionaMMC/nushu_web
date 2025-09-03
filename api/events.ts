@@ -188,15 +188,59 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
 
-        const eventData = req.body;
-        const newEvent = new Event(eventData);
-        await newEvent.save();
+        try {
+          const eventData = req.body;
+          
+          // Validate and prepare event data
+          if (!eventData || typeof eventData !== 'object') {
+            return res.status(400).json({ 
+              success: false, 
+              message: 'Invalid event data' 
+            });
+          }
 
-        return res.status(201).json({
-          success: true,
-          data: { event: newEvent },
-          message: 'Event created successfully'
-        });
+          // Ensure required fields exist
+          const requiredFields = ['title', 'date', 'time', 'venue', 'blurb'];
+          for (const field of requiredFields) {
+            if (!eventData[field]) {
+              return res.status(400).json({ 
+                success: false, 
+                message: `Missing required field: ${field}` 
+              });
+            }
+          }
+
+          // Create new event with validated data
+          const newEvent = new Event({
+            title: eventData.title,
+            date: eventData.date,
+            time: eventData.time,
+            venue: eventData.venue,
+            tags: eventData.tags || [],
+            blurb: eventData.blurb,
+            status: eventData.status || 'upcoming',
+            registrationLink: eventData.registrationLink,
+            capacity: eventData.capacity ? parseInt(eventData.capacity) : undefined,
+            currentRegistrations: eventData.currentRegistrations ? parseInt(eventData.currentRegistrations) : 0,
+            priority: eventData.priority ? parseInt(eventData.priority) : 0,
+            isActive: eventData.isActive !== false // default to true
+          });
+
+          await newEvent.save();
+
+          return res.status(201).json({
+            success: true,
+            data: { event: newEvent },
+            message: 'Event created successfully'
+          });
+        } catch (createError) {
+          console.error('Event creation error:', createError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to create event',
+            error: process.env.NODE_ENV === 'development' ? createError : undefined
+          });
+        }
 
       case 'PUT':
         // Update event (admin only)
@@ -209,7 +253,32 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(401).json({ success: false, message: 'Unauthorized' });
         }
 
-        const updateData = req.body;
+        const eventData = req.body;
+        
+        // Validate and prepare update data
+        if (!eventData || typeof eventData !== 'object') {
+          return res.status(400).json({ 
+            success: false, 
+            message: 'Invalid event data' 
+          });
+        }
+
+        const updateData: any = {};
+        
+        // Only update fields that are provided
+        if (eventData.title !== undefined) updateData.title = eventData.title;
+        if (eventData.date !== undefined) updateData.date = eventData.date;
+        if (eventData.time !== undefined) updateData.time = eventData.time;
+        if (eventData.venue !== undefined) updateData.venue = eventData.venue;
+        if (eventData.tags !== undefined) updateData.tags = eventData.tags || [];
+        if (eventData.blurb !== undefined) updateData.blurb = eventData.blurb;
+        if (eventData.status !== undefined) updateData.status = eventData.status;
+        if (eventData.registrationLink !== undefined) updateData.registrationLink = eventData.registrationLink;
+        if (eventData.capacity !== undefined) updateData.capacity = eventData.capacity ? parseInt(eventData.capacity) : undefined;
+        if (eventData.currentRegistrations !== undefined) updateData.currentRegistrations = eventData.currentRegistrations ? parseInt(eventData.currentRegistrations) : 0;
+        if (eventData.priority !== undefined) updateData.priority = eventData.priority ? parseInt(eventData.priority) : 0;
+        if (eventData.isActive !== undefined) updateData.isActive = eventData.isActive;
+
         const updatedEvent = await Event.findByIdAndUpdate(eventId, updateData, { new: true });
         
         if (!updatedEvent) {
