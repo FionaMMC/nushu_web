@@ -1,6 +1,68 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import mongoose from 'mongoose';
-import { Contact } from '../src/models/Contact.js';
+
+// Contact model definition (inline to avoid import issues)
+interface IContact extends mongoose.Document {
+  name: string;
+  email: string;
+  message: string;
+  status: 'new' | 'read' | 'responded' | 'archived';
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  respondedAt?: Date;
+  response?: string;
+}
+
+const contactSchema = new mongoose.Schema<IContact>({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true,
+    maxLength: [100, 'Name cannot exceed 100 characters']
+  },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    trim: true,
+    lowercase: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+  },
+  message: {
+    type: String,
+    required: [true, 'Message is required'],
+    trim: true,
+    maxLength: [2000, 'Message cannot exceed 2000 characters']
+  },
+  status: {
+    type: String,
+    enum: ['new', 'read', 'responded', 'archived'],
+    default: 'new'
+  },
+  ipAddress: {
+    type: String,
+    trim: true
+  },
+  userAgent: {
+    type: String,
+    trim: true
+  },
+  respondedAt: {
+    type: Date
+  },
+  response: {
+    type: String,
+    trim: true,
+    maxLength: [2000, 'Response cannot exceed 2000 characters']
+  }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+const Contact = mongoose.models.Contact || mongoose.model<IContact>('Contact', contactSchema);
 
 // Database connection helper
 let isConnected = false;

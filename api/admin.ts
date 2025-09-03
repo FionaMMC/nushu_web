@@ -2,8 +2,10 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { Event } from '../src/models/Event.js';
-import { Contact } from '../src/models/Contact.js';
+
+// Simplified model references for admin dashboard
+const Event = mongoose.models.Event;
+const Contact = mongoose.models.Contact;
 
 // Database connection helper
 let isConnected = false;
