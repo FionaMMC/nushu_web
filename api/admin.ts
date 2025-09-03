@@ -3,9 +3,158 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-// Simplified model references for admin dashboard
-const Event = mongoose.models.Event;
-const Contact = mongoose.models.Contact;
+// Event model definition (same as in events.ts)
+interface IEvent extends mongoose.Document {
+  title: string;
+  date: string;
+  time: string;
+  venue: string;
+  tags: string[];
+  blurb: string;
+  status: 'upcoming' | 'ongoing' | 'completed';
+  registrationLink?: string;
+  capacity?: number;
+  currentRegistrations?: number;
+  priority: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const EventSchema = new mongoose.Schema<IEvent>({
+  title: {
+    type: String,
+    required: [true, 'Event title is required'],
+    trim: true,
+    maxlength: [200, 'Title cannot exceed 200 characters']
+  },
+  date: {
+    type: String,
+    required: [true, 'Event date is required'],
+    validate: {
+      validator: function(v: string) {
+        return /^\d{4}-\d{2}-\d{2}$/.test(v);
+      },
+      message: 'Date must be in YYYY-MM-DD format'
+    }
+  },
+  time: {
+    type: String,
+    required: [true, 'Event time is required'],
+    trim: true
+  },
+  venue: {
+    type: String,
+    required: [true, 'Event venue is required'],
+    trim: true,
+    maxlength: [500, 'Venue cannot exceed 500 characters']
+  },
+  tags: [{
+    type: String,
+    trim: true,
+    maxlength: [50, 'Tag cannot exceed 50 characters']
+  }],
+  blurb: {
+    type: String,
+    required: [true, 'Event description is required'],
+    trim: true,
+    maxlength: [2000, 'Description cannot exceed 2000 characters']
+  },
+  status: {
+    type: String,
+    enum: ['upcoming', 'ongoing', 'completed'],
+    default: 'upcoming',
+    required: true
+  },
+  registrationLink: {
+    type: String,
+    trim: true
+  },
+  capacity: {
+    type: Number,
+    min: [1, 'Capacity must be at least 1']
+  },
+  currentRegistrations: {
+    type: Number,
+    default: 0,
+    min: [0, 'Current registrations cannot be negative']
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  priority: {
+    type: Number,
+    default: 0
+  }
+}, {
+  timestamps: true,
+  versionKey: false
+});
+
+// Contact model definition (same as in contacts.ts)
+interface IContact extends mongoose.Document {
+  name: string;
+  email: string;
+  message: string;
+  status: 'new' | 'read' | 'responded' | 'archived';
+  ipAddress?: string;
+  userAgent?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  respondedAt?: Date;
+  response?: string;
+}
+
+const ContactSchema = new mongoose.Schema<IContact>({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true,
+    maxLength: [100, 'Name cannot exceed 100 characters']
+  },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    trim: true,
+    lowercase: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
+  },
+  message: {
+    type: String,
+    required: [true, 'Message is required'],
+    trim: true,
+    maxLength: [2000, 'Message cannot exceed 2000 characters']
+  },
+  status: {
+    type: String,
+    enum: ['new', 'read', 'responded', 'archived'],
+    default: 'new'
+  },
+  ipAddress: {
+    type: String,
+    trim: true
+  },
+  userAgent: {
+    type: String,
+    trim: true
+  },
+  respondedAt: {
+    type: Date
+  },
+  response: {
+    type: String,
+    trim: true,
+    maxLength: [2000, 'Response cannot exceed 2000 characters']
+  }
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+const Event = mongoose.models.Event || mongoose.model<IEvent>('Event', EventSchema);
+const Contact = mongoose.models.Contact || mongoose.model<IContact>('Contact', ContactSchema);
 
 // Database connection helper
 let isConnected = false;
