@@ -86,7 +86,11 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
         capacity: formData.capacity && formData.capacity.toString().trim() !== '' ? Number(formData.capacity) : undefined,
         currentRegistrations: formData.currentRegistrations && formData.currentRegistrations.toString().trim() !== '' ? Number(formData.currentRegistrations) : undefined,
+        priority: Number(formData.priority) || 0
       };
+      
+      // Debug log before sending
+      console.log('EventForm - Preparing to send event data:', eventData);
 
       await onSave(eventData as any);
     } catch (error) {

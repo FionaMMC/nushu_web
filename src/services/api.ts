@@ -133,7 +133,9 @@ export const eventsApi = {
   },
   
   // Create new event (admin only)
-  create: async (eventData: Omit<Event, '_id' | 'createdAt' | 'updatedAt' | 'isActive' | 'priority'>, token: string): Promise<{ event: Event }> => {
+  create: async (eventData: Omit<Event, '_id' | 'createdAt' | 'updatedAt'>, token: string): Promise<{ event: Event }> => {
+    console.log('eventsApi.create - Sending event data:', eventData);
+    console.log('eventsApi.create - Stringified data:', JSON.stringify(eventData));
     const response = await apiRequest<{ event: Event }>('/events', {
       method: 'POST',
       headers: {
