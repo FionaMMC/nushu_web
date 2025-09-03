@@ -158,6 +158,9 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           const pageNum = parseInt(page as string) || 1;
           const skip = (pageNum - 1) * limitNum;
 
+          console.log('API Debug: Filters applied:', filters);
+          console.log('API Debug: Limit:', limitNum, 'Skip:', skip);
+          
           const [events, total] = await Promise.all([
             Event.find(filters)
               .sort({ date: 1, priority: -1 })
@@ -165,6 +168,9 @@ async function handler(req: VercelRequest, res: VercelResponse) {
               .skip(skip),
             Event.countDocuments(filters)
           ]);
+          
+          console.log('API Debug: Found', events.length, 'events, total count:', total);
+          console.log('API Debug: First event:', events[0]?.title || 'None');
 
           return res.json({
             success: true,
