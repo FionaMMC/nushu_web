@@ -17,6 +17,21 @@
     "strict": true
   },
   "include": [
-    "src"
+    "src/components",
+    "src/hooks",
+    "src/services",
+    "src/App.tsx",
+    "src/main.tsx",
+    "src/index.css"
+  ],
+  "exclude": [
+    "src/api",
+    "src/config",
+    "src/controllers",
+    "src/models",
+    "src/utils/auth.ts",
+    "src/utils/imageProcessing.ts",
+    "src/scripts",
+    "src/server.ts"
   ]
 }

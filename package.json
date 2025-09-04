@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build:full": "npm run build:server && npm run build",
     "preview": "vite preview",
     "server": "tsx src/server.ts",
     "server:dev": "tsx --watch src/server.ts",
     "dev:full": "concurrently \"npm run server:dev\" \"npm run dev\"",
-    "start": "node dist/server.js",
+    "start": "node dist/server/server.js",
     "seed:events": "tsx src/scripts/seedEvents.ts",
     "vercel-build": "npm run build"
   },

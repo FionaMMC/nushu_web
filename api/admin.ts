@@ -12,7 +12,6 @@ interface IEvent extends mongoose.Document {
   tags: string[];
   blurb: string;
   status: 'upcoming' | 'ongoing' | 'completed';
-  registrationLink?: string;
   capacity?: number;
   currentRegistrations?: number;
   priority: number;

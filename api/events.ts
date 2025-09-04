@@ -10,7 +10,6 @@ interface IEvent extends mongoose.Document {
   tags: string[];
   blurb: string;
   status: 'upcoming' | 'ongoing' | 'completed';
-  registrationLink?: string;
   capacity?: number;
   currentRegistrations?: number;
   priority: number;
@@ -63,10 +62,6 @@ const EventSchema = new mongoose.Schema<IEvent>({
     enum: ['upcoming', 'ongoing', 'completed'],
     default: 'upcoming',
     required: true
-  },
-  registrationLink: {
-    type: String,
-    trim: true
   },
   capacity: {
     type: Number,
@@ -227,7 +222,6 @@ async function handler(req: VercelRequest, res: VercelResponse) {
             tags: eventData.tags || [],
             blurb: eventData.blurb,
             status: eventData.status || 'upcoming',
-            registrationLink: eventData.registrationLink,
             capacity: eventData.capacity ? parseInt(eventData.capacity) : undefined,
             currentRegistrations: eventData.currentRegistrations ? parseInt(eventData.currentRegistrations) : 0,
             priority: eventData.priority ? parseInt(eventData.priority) : 0,
@@ -281,7 +275,6 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         if (eventData.tags !== undefined) updateData.tags = eventData.tags || [];
         if (eventData.blurb !== undefined) updateData.blurb = eventData.blurb;
         if (eventData.status !== undefined) updateData.status = eventData.status;
-        if (eventData.registrationLink !== undefined) updateData.registrationLink = eventData.registrationLink;
         if (eventData.capacity !== undefined) updateData.capacity = eventData.capacity ? parseInt(eventData.capacity) : undefined;
         if (eventData.currentRegistrations !== undefined) updateData.currentRegistrations = eventData.currentRegistrations ? parseInt(eventData.currentRegistrations) : 0;
         if (eventData.priority !== undefined) updateData.priority = eventData.priority ? parseInt(eventData.priority) : 0;
