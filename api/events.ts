@@ -75,6 +75,8 @@ const EventSchema = new mongoose.Schema<IEvent>({
   versionKey: false
 });
 
+// Ensure we're using the correct collection name and clean up the schema
+EventSchema.set('strict', false); // Allow flexible schema to handle legacy data
 const Event = mongoose.models.Event || mongoose.model<IEvent>('Event', EventSchema);
 
 // Database connection helper
@@ -122,6 +124,31 @@ async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { method, query } = req;
     const eventId = query.eventId as string;
+    
+    // Explicit body parsing for Vercel
+    let body = req.body;
+    console.log('Raw request body type:', typeof body);
+    console.log('Raw request body:', body);
+    
+    // Handle different body formats that Vercel might send
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+        console.log('Parsed JSON body successfully');
+      } catch (parseError) {
+        console.error('Failed to parse JSON body:', parseError);
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid JSON in request body',
+          debug: { originalBody: body, parseError: parseError.message }
+        });
+      }
+    }
+    
+    // Update req.body with parsed body
+    req.body = body;
+    console.log('Final processed body type:', typeof req.body);
+    console.log('Final processed body:', req.body);
 
     switch (method) {
       case 'GET':
@@ -358,6 +385,13 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           if (eventData.status !== undefined) updateData.status = eventData.status;
           if (eventData.priority !== undefined) updateData.priority = eventData.priority ? parseInt(eventData.priority) : 0;
           if (eventData.isActive !== undefined) updateData.isActive = eventData.isActive;
+          
+          // Clean up old fields that should no longer exist
+          updateData.$unset = {
+            capacity: 1,
+            currentRegistrations: 1,
+            registrationLink: 1
+          };
 
           console.log('PUT /events - Update data prepared:', updateData);
           console.log('PUT /events - Update data keys:', Object.keys(updateData));
@@ -429,3 +463,12 @@ async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 export default handler;
+
+// Vercel configuration for body parsing
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '1mb',
+    },
+  },
+};
