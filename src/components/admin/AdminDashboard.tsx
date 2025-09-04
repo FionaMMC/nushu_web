@@ -54,10 +54,36 @@ const AdminDashboard: React.FC = () => {
 
   const { execute: saveEvent, loading: saveEventLoading } = useAsyncAction(
     async (eventData: any) => {
-      if (editingEvent) {
-        return await eventsApi.update(editingEvent._id, eventData, token!);
-      } else {
-        return await eventsApi.create(eventData, token!);
+      console.log('=== SAVE EVENT ASYNC ACTION DEBUG START ===');
+      console.log('saveEvent asyncAction - Received data:', eventData);
+      console.log('saveEvent asyncAction - Data type:', typeof eventData);
+      console.log('saveEvent asyncAction - Is editing:', !!editingEvent);
+      console.log('saveEvent asyncAction - Editing event ID:', editingEvent?._id);
+      console.log('saveEvent asyncAction - Token available:', !!token);
+      
+      try {
+        let result;
+        if (editingEvent) {
+          console.log('saveEvent asyncAction - Calling eventsApi.update...');
+          result = await eventsApi.update(editingEvent._id, eventData, token!);
+          console.log('saveEvent asyncAction - Update result:', result);
+        } else {
+          console.log('saveEvent asyncAction - Calling eventsApi.create...');
+          result = await eventsApi.create(eventData, token!);
+          console.log('saveEvent asyncAction - Create result:', result);
+        }
+        console.log('=== SAVE EVENT ASYNC ACTION SUCCESS ===');
+        return result;
+      } catch (error) {
+        console.error('=== SAVE EVENT ASYNC ACTION ERROR ===');
+        console.error('saveEvent asyncAction - Error:', error);
+        console.error('saveEvent asyncAction - Error type:', typeof error);
+        console.error('saveEvent asyncAction - Error details:', {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        console.error('=== SAVE EVENT ASYNC ACTION ERROR END ===');
+        throw error;
       }
     }
   );
@@ -111,28 +137,47 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleSaveEvent = async (eventData: any) => {
+    console.log('=== ADMIN DASHBOARD SAVE DEBUG START ===');
+    console.log('AdminDashboard - handleSaveEvent called at:', new Date().toISOString());
+    console.log('AdminDashboard - Received event data:', eventData);
+    console.log('AdminDashboard - Event data type:', typeof eventData);
+    console.log('AdminDashboard - Event data keys:', eventData ? Object.keys(eventData) : 'null/undefined');
+    console.log('AdminDashboard - Current editing event:', editingEvent);
+    console.log('AdminDashboard - Is editing mode:', !!editingEvent);
+    console.log('AdminDashboard - Token available:', !!token);
+    console.log('AdminDashboard - Token preview:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+    
     try {
-      console.log('AdminDashboard - handleSaveEvent called with:', eventData);
-      console.log('AdminDashboard - Current editing event:', editingEvent);
-      console.log('AdminDashboard - Token available:', !!token);
-      
+      console.log('AdminDashboard - About to call saveEvent function...');
       const result = await saveEvent(eventData);
+      console.log('AdminDashboard - saveEvent completed successfully');
       console.log('AdminDashboard - saveEvent result:', result);
       
+      console.log('AdminDashboard - Cleaning up form state...');
       setShowEventForm(false);
       setEditingEvent(null);
-      // Reload events
+      
+      console.log('AdminDashboard - Reloading events...');
       const data = await loadEvents();
       setEvents(data.events);
-      console.log('AdminDashboard - Events reloaded successfully');
+      console.log('AdminDashboard - Events reloaded successfully, count:', data.events?.length || 0);
+      
     } catch (error) {
+      console.error('=== ADMIN DASHBOARD ERROR ===');
       console.error('AdminDashboard - Error saving event:', error);
+      console.error('AdminDashboard - Error type:', typeof error);
+      console.error('AdminDashboard - Error constructor:', error instanceof Error ? error.constructor.name : 'Not Error');
       console.error('AdminDashboard - Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined,
+        originalEventData: eventData
       });
+      console.error('=== ADMIN DASHBOARD ERROR END ===');
       // Don't close the form on error so user can try again
     }
+    
+    console.log('=== ADMIN DASHBOARD SAVE DEBUG END ===');
   };
 
   const handleDeleteEvent = async (eventId: string) => {

@@ -116,7 +116,15 @@ async function apiRequest<T>(
     if (!response.ok) {
       const errorMessage = data?.message || `HTTP error! status: ${response.status}`;
       console.log('Response not ok, throwing error:', errorMessage);
-      throw new Error(errorMessage);
+      console.log('Full error response data:', data);
+      
+      // Create detailed error with debug info if available
+      const error = new Error(errorMessage);
+      if (data?.debug) {
+        console.log('Error includes debug data:', data.debug);
+        (error as any).debug = data.debug;
+      }
+      throw error;
     }
     
     return data;

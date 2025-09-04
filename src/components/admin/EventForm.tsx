@@ -60,13 +60,23 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('EventForm - Form submitted');
-    console.log('EventForm - Form data before validation:', formData);
+    console.log('=== EVENTFORM SUBMIT DEBUG START ===');
+    console.log('EventForm - Form submitted at:', new Date().toISOString());
+    console.log('EventForm - Raw form data:', formData);
+    console.log('EventForm - Form data keys:', Object.keys(formData));
+    console.log('EventForm - Form data values:', Object.entries(formData));
     
-    if (!validateForm()) {
-      console.log('EventForm - Validation failed, errors:', errors);
+    const validationResult = validateForm();
+    console.log('EventForm - Validation result:', validationResult);
+    console.log('EventForm - Validation errors:', errors);
+    
+    if (!validationResult) {
+      console.error('EventForm - VALIDATION FAILED, stopping submission');
+      console.error('EventForm - Current errors:', errors);
       return;
     }
+
+    console.log('EventForm - Validation passed, processing data...');
 
     try {
       const eventData = {
@@ -75,19 +85,29 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
         priority: Number(formData.priority) || 0
       };
       
-      // Debug log before sending
-      console.log('EventForm - Preparing to send event data:', eventData);
+      console.log('EventForm - Processed event data:', eventData);
+      console.log('EventForm - Event data type:', typeof eventData);
+      console.log('EventForm - Event data keys:', Object.keys(eventData));
       console.log('EventForm - Event data JSON:', JSON.stringify(eventData, null, 2));
+      console.log('EventForm - About to call onSave...');
 
-      await onSave(eventData as any);
+      const result = await onSave(eventData as any);
+      console.log('EventForm - onSave returned successfully:', result);
       console.log('EventForm - Successfully saved event');
     } catch (error) {
+      console.error('=== EVENTFORM ERROR ===');
       console.error('EventForm - Error saving event:', error);
+      console.error('EventForm - Error type:', typeof error);
+      console.error('EventForm - Error constructor:', error instanceof Error ? error.constructor.name : 'Not Error');
       console.error('EventForm - Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined
       });
+      console.error('=== EVENTFORM ERROR END ===');
     }
+    
+    console.log('=== EVENTFORM SUBMIT DEBUG END ===');
   };
 
   return (
