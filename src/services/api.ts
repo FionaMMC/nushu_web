@@ -127,7 +127,7 @@ export const eventsApi = {
   
   // Get single event by ID
   getById: async (id: string): Promise<{ event: Event }> => {
-    const response = await apiRequest<{ event: Event }>(`/events/${id}`);
+    const response = await apiRequest<{ event: Event }>(`/events?eventId=${id}`);
     return response.data;
   },
   
@@ -177,7 +177,7 @@ export const eventsApi = {
   
   // Update event (admin only)
   update: async (id: string, eventData: Partial<Event>, token: string): Promise<{ event: Event }> => {
-    const response = await apiRequest<{ event: Event }>(`/events/${id}`, {
+    const response = await apiRequest<{ event: Event }>(`/events?eventId=${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -189,7 +189,7 @@ export const eventsApi = {
   
   // Delete event (admin only)
   delete: async (id: string, token: string): Promise<void> => {
-    await apiRequest(`/events/${id}`, {
+    await apiRequest(`/events?eventId=${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`

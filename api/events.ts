@@ -1,5 +1,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 
 // Event model definition (inline to avoid import issues)
 interface IEvent extends mongoose.Document {
@@ -89,6 +90,16 @@ const Event = mongoose.models.Event || mongoose.model<IEvent>('Event', EventSche
 
 // Database connection helper
 let isConnected = false;
+
+// JWT verification function
+function verifyToken(token: string) {
+  const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-in-production';
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch (error) {
+    throw new Error('Invalid or expired token');
+  }
+}
 
 const connectDatabase = async () => {
   if (isConnected) return;
@@ -180,7 +191,16 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         // Create new event (admin only)
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-          return res.status(401).json({ success: false, message: 'Unauthorized' });
+          return res.status(401).json({ success: false, message: 'Unauthorized - Missing token' });
+        }
+        
+        try {
+          const token = authHeader.substring(7);
+          verifyToken(token);
+          console.log('POST /events - Token verified successfully');
+        } catch (tokenError) {
+          console.log('POST /events - Token verification failed:', tokenError.message);
+          return res.status(401).json({ success: false, message: 'Unauthorized - Invalid token' });
         }
 
         try {
@@ -240,7 +260,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(500).json({
             success: false,
             message: 'Failed to create event',
-            error: process.env.NODE_ENV === 'development' ? createError : undefined
+            error: process.env.NODE_ENV === 'development' ? String(createError) : undefined
           });
         }
 
@@ -252,7 +272,14 @@ async function handler(req: VercelRequest, res: VercelResponse) {
 
         const authHeaderPut = req.headers.authorization;
         if (!authHeaderPut || !authHeaderPut.startsWith('Bearer ')) {
-          return res.status(401).json({ success: false, message: 'Unauthorized' });
+          return res.status(401).json({ success: false, message: 'Unauthorized - Missing token' });
+        }
+        
+        try {
+          const token = authHeaderPut.substring(7);
+          verifyToken(token);
+        } catch (tokenError) {
+          return res.status(401).json({ success: false, message: 'Unauthorized - Invalid token' });
         }
 
         const eventData = req.body;
@@ -300,7 +327,14 @@ async function handler(req: VercelRequest, res: VercelResponse) {
 
         const authHeaderDelete = req.headers.authorization;
         if (!authHeaderDelete || !authHeaderDelete.startsWith('Bearer ')) {
-          return res.status(401).json({ success: false, message: 'Unauthorized' });
+          return res.status(401).json({ success: false, message: 'Unauthorized - Missing token' });
+        }
+        
+        try {
+          const token = authHeaderDelete.substring(7);
+          verifyToken(token);
+        } catch (tokenError) {
+          return res.status(401).json({ success: false, message: 'Unauthorized - Invalid token' });
         }
 
         const deletedEvent = await Event.findByIdAndDelete(eventId);
@@ -323,7 +357,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({
       success: false,
       message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error : undefined
+      error: process.env.NODE_ENV === 'development' ? String(error) : undefined
     });
   }
 }
