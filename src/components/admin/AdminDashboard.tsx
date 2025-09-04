@@ -15,8 +15,7 @@ import {
   Mail,
   MessageSquare,
   Eye,
-  Archive,
-  Reply
+  Archive
 } from 'lucide-react';
 import { adminApi, eventsApi, galleryApi, contactsApi, authStorage, Event, GalleryImage, Contact } from '../../services/api';
 import { useAsyncAction } from '../../hooks/useApi';
@@ -33,7 +32,6 @@ const AdminDashboard: React.FC = () => {
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [contactResponse, setContactResponse] = useState('');
 
   const token = authStorage.getToken();
 
@@ -166,7 +164,6 @@ const AdminDashboard: React.FC = () => {
       const data = await loadContacts();
       setContacts(data.data.contacts);
       setSelectedContact(null);
-      setContactResponse('');
     } catch (error) {
       console.error('Error updating contact status:', error);
     }
@@ -540,40 +537,29 @@ const AdminDashboard: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Response Form */}
-                      <div>
-                        <h4 className="font-medium text-nushu-sage mb-2">
-                          {selectedContact.status === 'responded' ? 'Update Response' : 'Respond to Contact'}
-                        </h4>
-                        <div className="space-y-4">
-                          <textarea
-                            value={contactResponse}
-                            onChange={(e) => setContactResponse(e.target.value)}
-                            placeholder="Type your response here..."
-                            rows={4}
-                            className="w-full border border-nushu-sage/20 rounded-lg p-3 focus:border-nushu-terracotta focus:outline-none resize-none"
-                          />
-                          
-                          <div className="flex items-center gap-3">
-                            {selectedContact.status === 'new' && (
+                      {/* Contact Actions */}
+                      <div className="flex items-center gap-3">
+                        {selectedContact.status === 'archived' ? (
+                          <button
+                            onClick={() => handleContactStatusUpdate(selectedContact._id, 'new')}
+                            disabled={updateContactLoading}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                          >
+                            <Eye className="w-4 h-4" />
+                            Mark as Unread
+                          </button>
+                        ) : (
+                          <>
+                            {selectedContact.status !== 'new' && (
                               <button
-                                onClick={() => handleContactStatusUpdate(selectedContact._id, 'read')}
+                                onClick={() => handleContactStatusUpdate(selectedContact._id, 'new')}
                                 disabled={updateContactLoading}
                                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                               >
                                 <Eye className="w-4 h-4" />
-                                Mark as Read
+                                Mark as Unread
                               </button>
                             )}
-                            
-                            <button
-                              onClick={() => handleContactStatusUpdate(selectedContact._id, 'responded', contactResponse)}
-                              disabled={updateContactLoading || !contactResponse.trim()}
-                              className="flex items-center gap-2 px-4 py-2 bg-nushu-terracotta text-white rounded-lg hover:bg-nushu-terracotta/90 transition-colors disabled:opacity-50"
-                            >
-                              <Reply className="w-4 h-4" />
-                              {selectedContact.status === 'responded' ? 'Update Response' : 'Send Response'}
-                            </button>
                             
                             <button
                               onClick={() => handleContactStatusUpdate(selectedContact._id, 'archived')}
@@ -581,10 +567,10 @@ const AdminDashboard: React.FC = () => {
                               className="flex items-center gap-2 px-4 py-2 bg-nushu-sage text-white rounded-lg hover:bg-nushu-sage/90 transition-colors disabled:opacity-50"
                             >
                               <Archive className="w-4 h-4" />
-                              Archive
+                              Mark as Archive
                             </button>
-                          </div>
-                        </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
