@@ -41,7 +41,7 @@ const AdminDashboard: React.FC = () => {
   );
   
   const { execute: loadEvents, loading: eventsLoading } = useAsyncAction(
-    () => eventsApi.getAll({ limit: 50 })
+    () => eventsApi.getAll({ status: 'all', limit: 50 })
   );
   
   const { execute: loadGallery, loading: galleryLoading } = useAsyncAction(
