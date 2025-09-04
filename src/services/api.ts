@@ -41,8 +41,6 @@ export interface Event {
   tags: string[];
   blurb: string;
   status: 'upcoming' | 'ongoing' | 'completed';
-  capacity?: number;
-  currentRegistrations?: number;
   priority: number;
   isActive: boolean;
   createdAt: string;
@@ -156,8 +154,6 @@ export const eventsApi = {
       tags: Array.isArray(eventData.tags) ? eventData.tags : [],
       blurb: String(eventData.blurb).trim(),
       status: eventData.status || 'upcoming',
-      capacity: eventData.capacity ? Number(eventData.capacity) : undefined,
-      currentRegistrations: eventData.currentRegistrations ? Number(eventData.currentRegistrations) : 0,
       priority: Number(eventData.priority) || 0,
       isActive: eventData.isActive !== false
     };

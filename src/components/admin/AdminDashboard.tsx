@@ -360,10 +360,6 @@ const AdminDashboard: React.FC = () => {
                           <Calendar className="w-4 h-4" />
                           {event.date} • {event.time}
                         </p>
-                        <p className="flex items-center gap-2">
-                          <Users className="w-4 h-4" />
-                          {event.currentRegistrations || 0} / {event.capacity || '∞'} registered
-                        </p>
                       </div>
                     </div>
                     

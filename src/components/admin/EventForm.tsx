@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Tag, FileText, Users, Save, X } from 'lucide-react';
+import { Calendar, Clock, MapPin, Tag, FileText, Save, X } from 'lucide-react';
 import { Event } from '../../services/api';
 
 interface EventFormProps {
@@ -18,8 +18,6 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
     tags: event?.tags?.join(', ') || '',
     blurb: event?.blurb || '',
     status: event?.status || 'upcoming' as const,
-    capacity: event?.capacity?.toString() || '',
-    currentRegistrations: event?.currentRegistrations?.toString() || '',
     priority: event?.priority || 0,
     isActive: event?.isActive ?? true
   });
@@ -54,21 +52,6 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
       newErrors.date = 'Date must be in YYYY-MM-DD format';
     }
 
-    // Validate capacity if provided
-    if (formData.capacity && (isNaN(Number(formData.capacity)) || Number(formData.capacity) < 1)) {
-      newErrors.capacity = 'Capacity must be a positive number';
-    }
-
-    // Validate current registrations
-    if (formData.currentRegistrations && (isNaN(Number(formData.currentRegistrations)) || Number(formData.currentRegistrations) < 0)) {
-      newErrors.currentRegistrations = 'Current registrations must be a non-negative number';
-    }
-
-    // Check if current registrations exceed capacity
-    if (formData.capacity && formData.currentRegistrations && 
-        Number(formData.currentRegistrations) > Number(formData.capacity)) {
-      newErrors.currentRegistrations = 'Current registrations cannot exceed capacity';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -89,8 +72,6 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
       const eventData = {
         ...formData,
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-        capacity: formData.capacity && formData.capacity.toString().trim() !== '' ? Number(formData.capacity) : undefined,
-        currentRegistrations: formData.currentRegistrations && formData.currentRegistrations.toString().trim() !== '' ? Number(formData.currentRegistrations) : undefined,
         priority: Number(formData.priority) || 0
       };
       
@@ -234,44 +215,6 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
             </select>
           </div>
 
-          {/* Capacity */}
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-nushu-sage mb-2">
-              <Users className="w-4 h-4" />
-              Capacity
-            </label>
-            <input
-              type="number"
-              name="capacity"
-              value={formData.capacity}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-nushu-terracotta focus:border-nushu-terracotta ${
-                errors.capacity ? 'border-red-500' : 'border-nushu-sage/20'
-              }`}
-              placeholder="Maximum attendees"
-              min="1"
-            />
-            {errors.capacity && <p className="text-red-500 text-sm mt-1">{errors.capacity}</p>}
-          </div>
-
-          {/* Current Registrations */}
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-nushu-sage mb-2">
-              Current Registrations
-            </label>
-            <input
-              type="number"
-              name="currentRegistrations"
-              value={formData.currentRegistrations}
-              onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-nushu-terracotta focus:border-nushu-terracotta ${
-                errors.currentRegistrations ? 'border-red-500' : 'border-nushu-sage/20'
-              }`}
-              placeholder="Current registrations"
-              min="0"
-            />
-            {errors.currentRegistrations && <p className="text-red-500 text-sm mt-1">{errors.currentRegistrations}</p>}
-          </div>
 
 
           {/* Priority */}

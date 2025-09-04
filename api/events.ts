@@ -11,8 +11,6 @@ interface IEvent extends mongoose.Document {
   tags: string[];
   blurb: string;
   status: 'upcoming' | 'ongoing' | 'completed';
-  capacity?: number;
-  currentRegistrations?: number;
   priority: number;
   isActive: boolean;
   createdAt: Date;
@@ -63,15 +61,6 @@ const EventSchema = new mongoose.Schema<IEvent>({
     enum: ['upcoming', 'ongoing', 'completed'],
     default: 'upcoming',
     required: true
-  },
-  capacity: {
-    type: Number,
-    min: [1, 'Capacity must be at least 1']
-  },
-  currentRegistrations: {
-    type: Number,
-    default: 0,
-    min: [0, 'Current registrations cannot be negative']
   },
   isActive: {
     type: Boolean,
@@ -242,8 +231,6 @@ async function handler(req: VercelRequest, res: VercelResponse) {
             tags: eventData.tags || [],
             blurb: eventData.blurb,
             status: eventData.status || 'upcoming',
-            capacity: eventData.capacity ? parseInt(eventData.capacity) : undefined,
-            currentRegistrations: eventData.currentRegistrations ? parseInt(eventData.currentRegistrations) : 0,
             priority: eventData.priority ? parseInt(eventData.priority) : 0,
             isActive: eventData.isActive !== false // default to true
           });
@@ -302,8 +289,6 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         if (eventData.tags !== undefined) updateData.tags = eventData.tags || [];
         if (eventData.blurb !== undefined) updateData.blurb = eventData.blurb;
         if (eventData.status !== undefined) updateData.status = eventData.status;
-        if (eventData.capacity !== undefined) updateData.capacity = eventData.capacity ? parseInt(eventData.capacity) : undefined;
-        if (eventData.currentRegistrations !== undefined) updateData.currentRegistrations = eventData.currentRegistrations ? parseInt(eventData.currentRegistrations) : 0;
         if (eventData.priority !== undefined) updateData.priority = eventData.priority ? parseInt(eventData.priority) : 0;
         if (eventData.isActive !== undefined) updateData.isActive = eventData.isActive;
 

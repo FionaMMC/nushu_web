@@ -9,8 +9,6 @@ export interface IEvent extends Document {
   tags: string[];
   blurb: string;
   status: 'upcoming' | 'ongoing' | 'completed';
-  capacity?: number;
-  currentRegistrations?: number;
   createdAt: Date;
   updatedAt: Date;
   isActive: boolean;
@@ -62,22 +60,6 @@ const EventSchema = new Schema<IEvent>({
     default: 'upcoming',
     required: true
   },
-  capacity: {
-    type: Number,
-    min: [1, 'Capacity must be at least 1'],
-    max: [1000, 'Capacity cannot exceed 1000']
-  },
-  currentRegistrations: {
-    type: Number,
-    default: 0,
-    min: [0, 'Current registrations cannot be negative'],
-    validate: {
-      validator: function(this: IEvent, v: number) {
-        return !this.capacity || v <= this.capacity;
-      },
-      message: 'Current registrations cannot exceed capacity'
-    }
-  },
   isActive: {
     type: Boolean,
     default: true
@@ -124,11 +106,6 @@ EventSchema.virtual('formattedDate').get(function(this: IEvent) {
   }
 });
 
-// Method to check if event is near capacity
-EventSchema.methods.isNearCapacity = function(this: IEvent): boolean {
-  if (!this.capacity || !this.currentRegistrations) return false;
-  return (this.currentRegistrations / this.capacity) > 0.8;
-};
 
 // Static method to get upcoming events
 EventSchema.statics.getUpcoming = function() {

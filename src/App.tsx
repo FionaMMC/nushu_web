@@ -264,9 +264,6 @@ function EventCard({
     }
   };
 
-  const isNearCapacity = event.capacity && event.currentRegistrations 
-    ? (event.currentRegistrations / event.capacity) > 0.8 
-    : false;
 
   return (
     <motion.div
@@ -292,11 +289,6 @@ function EventCard({
               }`}>
                 {event.status}
               </span>
-              {isNearCapacity && (
-                <span className="px-3 py-1 text-xs font-medium uppercase tracking-wide bg-amber-100 text-amber-700">
-                  Almost Full
-                </span>
-              )}
             </div>
             <h3 className="text-xl lg:text-2xl font-serif font-normal text-nushu-sage leading-tight group-hover:text-nushu-terracotta transition-colors">
               {event.title}
@@ -335,18 +327,6 @@ function EventCard({
             <span className="text-sm">{event.venue}</span>
           </div>
           
-          {event.capacity && event.currentRegistrations !== undefined && (
-            <div className="flex items-center gap-2 text-sm text-nushu-sage/60">
-              <Users className="w-4 h-4" />
-              <span>{event.currentRegistrations} / {event.capacity} registered</span>
-              <div className="flex-1 bg-nushu-sage/10 rounded-full h-2 ml-2">
-                <div 
-                  className="bg-nushu-terracotta h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${Math.min((event.currentRegistrations / event.capacity) * 100, 100)}%` }}
-                />
-              </div>
-            </div>
-          )}
         </div>
 
         <p className="text-nushu-sage/90 leading-relaxed mb-6">{event.blurb}</p>
