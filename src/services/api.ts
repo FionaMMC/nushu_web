@@ -128,7 +128,7 @@ export const eventsApi = {
   
   // Get single event by ID
   getById: async (id: string): Promise<{ event: Event }> => {
-    const response = await apiRequest<{ event: Event }>(`/events?eventId=${id}`);
+    const response = await apiRequest<{ event: Event }>(`/events/${id}`);
     return response.data;
   },
   
@@ -136,6 +136,23 @@ export const eventsApi = {
   create: async (eventData: Omit<Event, '_id' | 'createdAt' | 'updatedAt'>, token: string): Promise<{ event: Event }> => {
     console.log('eventsApi.create - Sending event data:', eventData);
     console.log('eventsApi.create - Stringified data:', JSON.stringify(eventData));
+    
+    // TEMPORARY: Mock response for testing frontend
+    if (process.env.NODE_ENV === 'development') {
+      console.log('eventsApi.create - Using mock response for development');
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+      
+      const mockEvent: Event = {
+        _id: 'mock-id-' + Date.now(),
+        ...eventData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      console.log('eventsApi.create - Mock event created:', mockEvent);
+      return { event: mockEvent };
+    }
+    
     const response = await apiRequest<{ event: Event }>('/events', {
       method: 'POST',
       headers: {
@@ -148,7 +165,7 @@ export const eventsApi = {
   
   // Update event (admin only)
   update: async (id: string, eventData: Partial<Event>, token: string): Promise<{ event: Event }> => {
-    const response = await apiRequest<{ event: Event }>(`/events?eventId=${id}`, {
+    const response = await apiRequest<{ event: Event }>(`/events/${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -160,7 +177,7 @@ export const eventsApi = {
   
   // Delete event (admin only)
   delete: async (id: string, token: string): Promise<void> => {
-    await apiRequest(`/events?eventId=${id}`, {
+    await apiRequest(`/events/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`

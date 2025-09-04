@@ -112,14 +112,26 @@ const AdminDashboard: React.FC = () => {
 
   const handleSaveEvent = async (eventData: any) => {
     try {
-      await saveEvent(eventData);
+      console.log('AdminDashboard - handleSaveEvent called with:', eventData);
+      console.log('AdminDashboard - Current editing event:', editingEvent);
+      console.log('AdminDashboard - Token available:', !!token);
+      
+      const result = await saveEvent(eventData);
+      console.log('AdminDashboard - saveEvent result:', result);
+      
       setShowEventForm(false);
       setEditingEvent(null);
       // Reload events
       const data = await loadEvents();
       setEvents(data.events);
+      console.log('AdminDashboard - Events reloaded successfully');
     } catch (error) {
-      console.error('Error saving event:', error);
+      console.error('AdminDashboard - Error saving event:', error);
+      console.error('AdminDashboard - Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      // Don't close the form on error so user can try again
     }
   };
 

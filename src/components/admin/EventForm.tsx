@@ -78,7 +78,13 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    console.log('EventForm - Form submitted');
+    console.log('EventForm - Form data before validation:', formData);
+    
+    if (!validateForm()) {
+      console.log('EventForm - Validation failed, errors:', errors);
+      return;
+    }
 
     try {
       const eventData = {
@@ -91,10 +97,16 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
       
       // Debug log before sending
       console.log('EventForm - Preparing to send event data:', eventData);
+      console.log('EventForm - Event data JSON:', JSON.stringify(eventData, null, 2));
 
       await onSave(eventData as any);
+      console.log('EventForm - Successfully saved event');
     } catch (error) {
-      console.error('Error saving event:', error);
+      console.error('EventForm - Error saving event:', error);
+      console.error('EventForm - Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      });
     }
   };
 
