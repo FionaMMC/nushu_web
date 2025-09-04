@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useUpcomingEvents, useApiWithFallback, useGalleryImages } from "./hooks/useApi";
 import { Event as ApiEvent, GalleryImage, eventsApi, galleryApi, contactsApi } from "./services/api";
+import { navigateTo } from "./utils/navigation";
 
 /* =========================================
    Text content (EN / ZH)
@@ -44,11 +45,24 @@ const en = {
   events: {
     heading: "Events",
     empty: "No events are scheduled yet. Check back soon or subscribe below.",
+    subtitle: "Join our community through workshops, seminars, and cultural events. All skill levels welcome.",
+    totalWishes: "total wishes",
+    eventsAvailable: "events available",
+    allEvents: "All Events",
+    workshops: "Workshops",
+    seminars: "Seminars",
+    readingGroups: "Reading Groups",
+    loading: "Loading Events...",
+    loadingSubtitle: "Please wait while we fetch the latest events.",
+    noUpcoming: "No Upcoming Events",
+    getNotified: "Get Notified",
+    loadError: "Unable to load events. Please try again later.",
   },
   resources: {
     heading: "Resources",
     blurb:
       "Curated materials for learning and teaching, including primers, bibliographies, and workshop sheets. The selection below is a start; contribute suggestions via the contact form.",
+    accessResource: "Access Resource",
   },
   gallery: { heading: "Gallery" },
   join: {
@@ -86,12 +100,25 @@ const zh = {
     body: "本社团由悉尼大学学生发起，关注湖南江永女书的历史文献与当代表达，跨越文字学、性别史与物质文化研究，并开展书写工作坊与学术讲座。欢迎不同学科背景的同学加入。",
   },
   events: {
-    heading: "活动预告",
+    heading: "活动预告", 
     empty: "暂时没有排期，欢迎订阅邮件以获取更新。",
+    subtitle: "通过工作坊、学术讲座和文化活动加入我们的社区。欢迎各种水平的参与者。",
+    totalWishes: "个心愿",
+    eventsAvailable: "场活动可报名",
+    allEvents: "全部活动",
+    workshops: "工作坊",
+    seminars: "学术讲座", 
+    readingGroups: "读书会",
+    loading: "加载活动中...",
+    loadingSubtitle: "请稍候，我们正在获取最新活动信息。",
+    noUpcoming: "暂无即将举行的活动",
+    getNotified: "获取通知",
+    loadError: "无法加载活动信息，请稍后再试。",
   },
   resources: {
     heading: "学习资源",
     blurb: "入门资料、参考书目与工作坊讲义。以下为示例，欢迎通过表单补充建议。",
+    accessResource: "访问资源",
   },
   gallery: { heading: "作品与现场" },
   join: {
@@ -113,23 +140,23 @@ const toKey = (title: string) =>
   "wish:" + title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 
-const resources = [
+const getResources = (lang: "en" | "zh") => [
   {
-    title: "Starter Primer (PDF)",
-    href: "#",
-    desc: "A two-page primer on phonology, ductus, and materials.",
+    title: lang === "en" ? "Starter Primer (PDF)" : "入门手册（PDF）",
+    href: "/resources/primer",
+    desc: lang === "en" ? "A two-page primer on phonology, ductus, and materials." : "关于发音、书写和材料的两页入门介绍。",
     icon: BookOpen,
   },
   {
-    title: "Reading List",
-    href: "#",
-    desc: "Key scholarship and ethnographies for deeper study.",
+    title: lang === "en" ? "Reading List" : "参考书目",
+    href: "/resources/reading-list", 
+    desc: lang === "en" ? "Key scholarship and ethnographies for deeper study." : "深入学习的关键学术文献和民族志研究。",
     icon: Globe,
   },
   {
-    title: "Workshop Sheet",
-    href: "#",
-    desc: "Printable grid and exemplar strokes for practice.",
+    title: lang === "en" ? "Workshop Sheet" : "练习材料",
+    href: "/resources/workshop-sheet",
+    desc: lang === "en" ? "Printable grid and exemplar strokes for practice." : "可打印的练习网格和示例笔画。",
     icon: PenTool,
   },
 ];
@@ -576,26 +603,10 @@ export default function NusHuSocietySite() {
 
       {/* About */}
       <Section id="about" title={t.about.heading} icon={Feather}>
-        <div className="grid lg:grid-cols-5 gap-16 items-start">
-          <div className="lg:col-span-3">
-            <p className="text-xl lg:text-2xl leading-relaxed text-nushu-sage/90 font-light">
-              {t.about.body}
-            </p>
-          </div>
-          <div className="lg:col-span-2 bg-nushu-cream p-8 lg:p-10">
-            <div className="flex items-center gap-3 mb-4">
-              <BookOpen className="w-6 h-6 text-nushu-terracotta" />
-              <span className="font-medium text-nushu-sage">Research and practice</span>
-            </div>
-            <div className="text-nushu-sage/80 mb-6 leading-relaxed">
-              Reading groups, calligraphy, and public humanities.
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Tag>English</Tag>
-              <Tag>中文</Tag>
-              <Tag>Workshops</Tag>
-            </div>
-          </div>
+        <div className="max-w-4xl">
+          <p className="text-xl lg:text-2xl leading-relaxed text-nushu-sage/90 font-light">
+            {t.about.body}
+          </p>
         </div>
       </Section>
 
@@ -612,7 +623,7 @@ export default function NusHuSocietySite() {
                   {t.events.heading}
                 </h2>
                 <p className="text-lg text-nushu-sage/80 max-w-2xl leading-relaxed">
-                  Join our community through workshops, seminars, and cultural events. All skill levels welcome.
+                  {t.events.subtitle}
                 </p>
               </div>
               
@@ -620,14 +631,14 @@ export default function NusHuSocietySite() {
                 <div className="inline-flex items-center gap-3 px-6 py-3 bg-white border border-nushu-sage/10">
                   <Heart className="w-5 h-5 text-nushu-terracotta" />
                   <span className="text-nushu-sage text-sm">
-                    <strong>{totalWishes}</strong> total wishes
+                    <strong>{totalWishes}</strong> {t.events.totalWishes}
                   </span>
                 </div>
                 
                 <div className="inline-flex items-center gap-3 px-6 py-3 bg-nushu-terracotta text-white">
-                  <Users className="w-5 h-5" />
+                  <Calendar className="w-5 h-5" />
                   <span className="text-sm font-medium">
-                    {events.reduce((sum: number, e: ApiEvent) => sum + (e.currentRegistrations || 0), 0)} registered
+                    {events.length} {t.events.eventsAvailable}
                   </span>
                 </div>
               </div>
@@ -638,16 +649,16 @@ export default function NusHuSocietySite() {
           <div className="mb-12">
             <div className="flex flex-wrap gap-3">
               <button className="px-4 py-2 bg-nushu-sage text-white text-sm font-medium">
-                All Events
+                {t.events.allEvents}
               </button>
               <button className="px-4 py-2 bg-white text-nushu-sage border border-nushu-sage/20 text-sm font-medium hover:bg-nushu-cream transition-colors">
-                Workshops
+                {t.events.workshops}
               </button>
               <button className="px-4 py-2 bg-white text-nushu-sage border border-nushu-sage/20 text-sm font-medium hover:bg-nushu-cream transition-colors">
-                Seminars
+                {t.events.seminars}
               </button>
               <button className="px-4 py-2 bg-white text-nushu-sage border border-nushu-sage/20 text-sm font-medium hover:bg-nushu-cream transition-colors">
-                Reading Groups
+                {t.events.readingGroups}
               </button>
             </div>
           </div>
@@ -658,22 +669,22 @@ export default function NusHuSocietySite() {
               <div className="lg:col-span-2 xl:col-span-3">
                 <div className="text-center py-16">
                   <Loader2 className="w-16 h-16 text-nushu-sage/30 mx-auto mb-6 animate-spin" />
-                  <h3 className="text-xl font-serif text-nushu-sage mb-4">Loading Events...</h3>
-                  <p className="text-nushu-sage/70">Please wait while we fetch the latest events.</p>
+                  <h3 className="text-xl font-serif text-nushu-sage mb-4">{t.events.loading}</h3>
+                  <p className="text-nushu-sage/70">{t.events.loadingSubtitle}</p>
                 </div>
               </div>
             ) : events.length === 0 ? (
               <div className="lg:col-span-2 xl:col-span-3">
                 <div className="text-center py-16">
                   <Calendar className="w-16 h-16 text-nushu-sage/30 mx-auto mb-6" />
-                  <h3 className="text-xl font-serif text-nushu-sage mb-4">No Upcoming Events</h3>
+                  <h3 className="text-xl font-serif text-nushu-sage mb-4">{t.events.noUpcoming}</h3>
                   <p className="text-nushu-sage/70 mb-8">{t.events.empty}</p>
                   <a 
                     href="#join" 
                     className="inline-flex items-center gap-2 px-6 py-3 bg-nushu-terracotta text-white font-medium hover:bg-nushu-terracotta/90 transition-colors"
                   >
                     <Mail className="w-4 h-4" />
-                    <span>Get Notified</span>
+                    <span>{t.events.getNotified}</span>
                   </a>
                 </div>
               </div>
@@ -688,7 +699,7 @@ export default function NusHuSocietySite() {
               <div className="lg:col-span-2 xl:col-span-3">
                 <div className="flex items-center justify-center gap-2 mt-6 px-4 py-2 bg-red-50 border border-red-200 text-red-800 text-sm rounded-lg">
                   <AlertCircle className="w-4 h-4" />
-                  <span>Unable to load events. Please try again later.</span>
+                  <span>{t.events.loadError}</span>
                 </div>
               </div>
             )}
@@ -706,8 +717,15 @@ export default function NusHuSocietySite() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-            {resources.map((r, index) => (
-              <a key={r.title} href={r.href} className="group block">
+            {getResources(lang).map((r, index) => (
+              <div 
+                key={r.title} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateTo(r.href);
+                }}
+                className="group block cursor-pointer"
+              >
                 <div
                   className={`h-full p-8 lg:p-10 transition-all duration-300 hover:scale-[1.02] ${
                     index === 0
@@ -757,11 +775,11 @@ export default function NusHuSocietySite() {
                         : "text-nushu-terracotta"
                     } group-hover:gap-4 transition-all`}
                   >
-                    <span>Access Resource</span>
+                    <span>{t.resources.accessResource}</span>
                     <span className="text-xl">→</span>
                   </div>
                 </div>
-              </a>
+              </div>
             ))}
           </div>
         </div>
