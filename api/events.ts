@@ -195,32 +195,70 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         try {
           const eventData = req.body;
           
-          // Debug logging
-          console.log('POST /events - Request body keys:', Object.keys(eventData || {}));
-          console.log('POST /events - Body type:', typeof eventData);
+          // Debug logging - More detailed
+          console.log('=== POST /events - DEBUG START ===');
+          console.log('Request headers:', req.headers);
+          console.log('Request method:', req.method);
+          console.log('Request body raw:', req.body);
+          console.log('Request body type:', typeof eventData);
+          console.log('Request body keys:', eventData ? Object.keys(eventData) : 'null/undefined');
+          console.log('Request body values:', eventData ? Object.entries(eventData) : 'null/undefined');
+          console.log('Is array?', Array.isArray(eventData));
+          console.log('JSON stringify body:', JSON.stringify(eventData));
+          console.log('=== POST /events - DEBUG END ===');
           
           // Validate and prepare event data
           if (!eventData || typeof eventData !== 'object' || Array.isArray(eventData)) {
-            console.log('POST /events - Validation failed: Invalid event data type');
+            console.log('POST /events - VALIDATION FAILED - Invalid event data type');
+            console.log('Event data is null/undefined?', !eventData);
+            console.log('Event data type:', typeof eventData);
+            console.log('Event data is array?', Array.isArray(eventData));
             return res.status(400).json({ 
               success: false, 
-              message: 'Invalid event data - must be object' 
+              message: 'Invalid event data - must be object',
+              debug: {
+                receivedType: typeof eventData,
+                isArray: Array.isArray(eventData),
+                isNull: !eventData,
+                body: JSON.stringify(eventData)
+              }
             });
           }
 
           // Ensure required fields exist
           const requiredFields = ['title', 'date', 'time', 'venue', 'blurb'];
+          console.log('=== FIELD VALIDATION START ===');
+          
           for (const field of requiredFields) {
             const value = eventData[field];
+            console.log(`Checking field '${field}':`, {
+              value: value,
+              type: typeof value,
+              exists: field in eventData,
+              truthy: !!value,
+              emptyString: typeof value === 'string' && value.trim() === ''
+            });
+            
             if (!value || (typeof value === 'string' && value.trim() === '')) {
-              console.log(`POST /events - Missing/empty required field: ${field}`);
+              console.log(`POST /events - FIELD VALIDATION FAILED for: ${field}`);
               console.log(`POST /events - Field value:`, value);
+              console.log(`POST /events - All event data:`, eventData);
+              
               return res.status(400).json({ 
                 success: false, 
-                message: `Missing required field: ${field}` 
+                message: `Missing required field: ${field}`,
+                debug: {
+                  missingField: field,
+                  fieldValue: value,
+                  fieldType: typeof value,
+                  allData: eventData,
+                  requiredFields: requiredFields
+                }
               });
             }
           }
+          
+          console.log('=== FIELD VALIDATION PASSED ===');
 
           // Create new event with validated data
           const newEvent = new Event({

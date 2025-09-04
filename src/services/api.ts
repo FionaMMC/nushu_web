@@ -82,17 +82,50 @@ async function apiRequest<T>(
     ...options,
   };
   
+  console.log('=== API REQUEST DEBUG START ===');
+  console.log('Request URL:', url);
+  console.log('Request method:', options.method || 'GET');
+  console.log('Request headers:', config.headers);
+  console.log('Request body:', options.body);
+  console.log('Request body type:', typeof options.body);
+  console.log('=== API REQUEST DEBUG END ===');
+  
   try {
     const response = await fetch(url, config);
-    const data = await response.json();
+    
+    console.log('=== API RESPONSE DEBUG START ===');
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+    
+    let data;
+    const responseText = await response.text();
+    console.log('Response raw text:', responseText);
+    
+    try {
+      data = JSON.parse(responseText);
+      console.log('Response parsed data:', data);
+    } catch (parseError) {
+      console.log('JSON parse error:', parseError);
+      console.log('Response was not valid JSON');
+      throw new Error(`Invalid JSON response: ${responseText}`);
+    }
+    
+    console.log('=== API RESPONSE DEBUG END ===');
     
     if (!response.ok) {
-      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      const errorMessage = data?.message || `HTTP error! status: ${response.status}`;
+      console.log('Response not ok, throwing error:', errorMessage);
+      throw new Error(errorMessage);
     }
     
     return data;
   } catch (error) {
-    console.error('API request failed:', error);
+    console.error('=== API REQUEST ERROR ===');
+    console.error('Error type:', typeof error);
+    console.error('Error message:', error instanceof Error ? error.message : String(error));
+    console.error('Full error:', error);
+    console.error('=== API REQUEST ERROR END ===');
     throw error;
   }
 }
@@ -131,16 +164,30 @@ export const eventsApi = {
   
   // Create new event (admin only)
   create: async (eventData: Omit<Event, '_id' | 'createdAt' | 'updatedAt'>, token: string): Promise<{ event: Event }> => {
-    console.log('eventsApi.create - Sending event data:', eventData);
+    console.log('=== FRONTEND API CREATE DEBUG START ===');
+    console.log('eventsApi.create - Original event data:', eventData);
+    console.log('eventsApi.create - Data type:', typeof eventData);
+    console.log('eventsApi.create - Data keys:', Object.keys(eventData || {}));
+    console.log('eventsApi.create - Token provided:', !!token);
     
     // Validate required fields
     if (!eventData || typeof eventData !== 'object') {
+      console.log('Frontend validation failed: Invalid event data type');
       throw new Error('Invalid event data - must be object');
     }
     
     const requiredFields = ['title', 'date', 'time', 'venue', 'blurb'];
     for (const field of requiredFields) {
-      if (!eventData[field as keyof typeof eventData]) {
+      const value = eventData[field as keyof typeof eventData];
+      console.log(`Frontend checking field '${field}':`, {
+        value: value,
+        type: typeof value,
+        exists: field in eventData,
+        truthy: !!value
+      });
+      
+      if (!value) {
+        console.log(`Frontend validation failed: Missing field ${field}`);
         throw new Error(`Missing required field: ${field}`);
       }
     }
@@ -159,7 +206,10 @@ export const eventsApi = {
     };
     
     console.log('eventsApi.create - Clean event data:', cleanEventData);
-    console.log('eventsApi.create - Stringified data:', JSON.stringify(cleanEventData));
+    console.log('eventsApi.create - Clean data type:', typeof cleanEventData);
+    console.log('eventsApi.create - Clean data keys:', Object.keys(cleanEventData));
+    console.log('eventsApi.create - Stringified clean data:', JSON.stringify(cleanEventData));
+    console.log('=== FRONTEND API CREATE DEBUG END ===');
     
     const response = await apiRequest<{ event: Event }>('/events', {
       method: 'POST',
