@@ -303,44 +303,87 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         try {
           const token = authHeaderPut.substring(7);
           verifyToken(token);
+          console.log('PUT /events - Token verified successfully');
         } catch (tokenError) {
+          console.log('PUT /events - Token verification failed:', tokenError.message);
           return res.status(401).json({ success: false, message: 'Unauthorized - Invalid token' });
         }
 
-        const eventData = req.body;
-        
-        // Validate and prepare update data
-        if (!eventData || typeof eventData !== 'object') {
-          return res.status(400).json({ 
-            success: false, 
-            message: 'Invalid event data' 
+        try {
+          const eventData = req.body;
+          
+          // Debug logging - More detailed for PUT
+          console.log('=== PUT /events - DEBUG START ===');
+          console.log('PUT Request headers:', req.headers);
+          console.log('PUT Request method:', req.method);
+          console.log('PUT Request eventId:', eventId);
+          console.log('PUT Request body raw:', req.body);
+          console.log('PUT Request body type:', typeof eventData);
+          console.log('PUT Request body keys:', eventData ? Object.keys(eventData) : 'null/undefined');
+          console.log('PUT Request body values:', eventData ? Object.entries(eventData) : 'null/undefined');
+          console.log('PUT Is array?', Array.isArray(eventData));
+          console.log('PUT JSON stringify body:', JSON.stringify(eventData));
+          console.log('=== PUT /events - DEBUG END ===');
+          
+          // Validate and prepare update data
+          if (!eventData || typeof eventData !== 'object' || Array.isArray(eventData)) {
+            console.log('PUT /events - VALIDATION FAILED - Invalid event data type');
+            console.log('PUT Event data is null/undefined?', !eventData);
+            console.log('PUT Event data type:', typeof eventData);
+            console.log('PUT Event data is array?', Array.isArray(eventData));
+            return res.status(400).json({ 
+              success: false, 
+              message: 'Invalid event data - must be object',
+              debug: {
+                receivedType: typeof eventData,
+                isArray: Array.isArray(eventData),
+                isNull: !eventData,
+                body: JSON.stringify(eventData)
+              }
+            });
+          }
+          
+          console.log('PUT /events - Event data validation passed');
+
+          const updateData: any = {};
+          
+          // Only update fields that are provided
+          console.log('PUT /events - Building update data...');
+          if (eventData.title !== undefined) updateData.title = eventData.title;
+          if (eventData.date !== undefined) updateData.date = eventData.date;
+          if (eventData.time !== undefined) updateData.time = eventData.time;
+          if (eventData.venue !== undefined) updateData.venue = eventData.venue;
+          if (eventData.tags !== undefined) updateData.tags = eventData.tags || [];
+          if (eventData.blurb !== undefined) updateData.blurb = eventData.blurb;
+          if (eventData.status !== undefined) updateData.status = eventData.status;
+          if (eventData.priority !== undefined) updateData.priority = eventData.priority ? parseInt(eventData.priority) : 0;
+          if (eventData.isActive !== undefined) updateData.isActive = eventData.isActive;
+
+          console.log('PUT /events - Update data prepared:', updateData);
+          console.log('PUT /events - Update data keys:', Object.keys(updateData));
+          console.log('PUT /events - About to update event with ID:', eventId);
+
+          const updatedEvent = await Event.findByIdAndUpdate(eventId, updateData, { new: true });
+          
+          if (!updatedEvent) {
+            console.log('PUT /events - Event not found with ID:', eventId);
+            return res.status(404).json({ success: false, message: 'Event not found' });
+          }
+
+          console.log('PUT /events - Event updated successfully:', updatedEvent._id);
+          return res.json({
+            success: true,
+            data: { event: updatedEvent },
+            message: 'Event updated successfully'
+          });
+        } catch (updateError) {
+          console.error('PUT /events - Update error:', updateError);
+          return res.status(500).json({
+            success: false,
+            message: 'Failed to update event',
+            error: process.env.NODE_ENV === 'development' ? String(updateError) : undefined
           });
         }
-
-        const updateData: any = {};
-        
-        // Only update fields that are provided
-        if (eventData.title !== undefined) updateData.title = eventData.title;
-        if (eventData.date !== undefined) updateData.date = eventData.date;
-        if (eventData.time !== undefined) updateData.time = eventData.time;
-        if (eventData.venue !== undefined) updateData.venue = eventData.venue;
-        if (eventData.tags !== undefined) updateData.tags = eventData.tags || [];
-        if (eventData.blurb !== undefined) updateData.blurb = eventData.blurb;
-        if (eventData.status !== undefined) updateData.status = eventData.status;
-        if (eventData.priority !== undefined) updateData.priority = eventData.priority ? parseInt(eventData.priority) : 0;
-        if (eventData.isActive !== undefined) updateData.isActive = eventData.isActive;
-
-        const updatedEvent = await Event.findByIdAndUpdate(eventId, updateData, { new: true });
-        
-        if (!updatedEvent) {
-          return res.status(404).json({ success: false, message: 'Event not found' });
-        }
-
-        return res.json({
-          success: true,
-          data: { event: updatedEvent },
-          message: 'Event updated successfully'
-        });
 
       case 'DELETE':
         // Delete event (admin only)
