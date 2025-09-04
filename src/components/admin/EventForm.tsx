@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, MapPin, Tag, FileText, Users, Link, Save, X } from 'lucide-react';
+import { Calendar, Clock, MapPin, Tag, FileText, Users, Save, X } from 'lucide-react';
 import { Event } from '../../services/api';
 
 interface EventFormProps {
@@ -18,7 +18,6 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
     tags: event?.tags?.join(', ') || '',
     blurb: event?.blurb || '',
     status: event?.status || 'upcoming' as const,
-    registrationLink: event?.registrationLink || '',
     capacity: event?.capacity?.toString() || '',
     currentRegistrations: event?.currentRegistrations?.toString() || '',
     priority: event?.priority || 0,
@@ -274,21 +273,6 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
             {errors.currentRegistrations && <p className="text-red-500 text-sm mt-1">{errors.currentRegistrations}</p>}
           </div>
 
-          {/* Registration Link */}
-          <div className="md:col-span-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-nushu-sage mb-2">
-              <Link className="w-4 h-4" />
-              Registration Link
-            </label>
-            <input
-              type="url"
-              name="registrationLink"
-              value={formData.registrationLink}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-nushu-sage/20 rounded-lg focus:ring-2 focus:ring-nushu-terracotta focus:border-nushu-terracotta"
-              placeholder="https://example.com/register"
-            />
-          </div>
 
           {/* Priority */}
           <div>

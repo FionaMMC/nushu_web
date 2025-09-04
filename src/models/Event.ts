@@ -9,7 +9,6 @@ export interface IEvent extends Document {
   tags: string[];
   blurb: string;
   status: 'upcoming' | 'ongoing' | 'completed';
-  registrationLink?: string;
   capacity?: number;
   currentRegistrations?: number;
   createdAt: Date;
@@ -62,17 +61,6 @@ const EventSchema = new Schema<IEvent>({
     enum: ['upcoming', 'ongoing', 'completed'],
     default: 'upcoming',
     required: true
-  },
-  registrationLink: {
-    type: String,
-    trim: true,
-    validate: {
-      validator: function(v: string) {
-        if (!v) return true; // Optional field
-        return /^https?:\/\/.+/.test(v);
-      },
-      message: 'Registration link must be a valid URL'
-    }
   },
   capacity: {
     type: Number,

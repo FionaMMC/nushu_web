@@ -41,7 +41,6 @@ export interface Event {
   tags: string[];
   blurb: string;
   status: 'upcoming' | 'ongoing' | 'completed';
-  registrationLink?: string;
   capacity?: number;
   currentRegistrations?: number;
   priority: number;
@@ -135,30 +134,43 @@ export const eventsApi = {
   // Create new event (admin only)
   create: async (eventData: Omit<Event, '_id' | 'createdAt' | 'updatedAt'>, token: string): Promise<{ event: Event }> => {
     console.log('eventsApi.create - Sending event data:', eventData);
-    console.log('eventsApi.create - Stringified data:', JSON.stringify(eventData));
     
-    // TEMPORARY: Mock response for testing frontend
-    if (process.env.NODE_ENV === 'development') {
-      console.log('eventsApi.create - Using mock response for development');
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-      
-      const mockEvent: Event = {
-        _id: 'mock-id-' + Date.now(),
-        ...eventData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      console.log('eventsApi.create - Mock event created:', mockEvent);
-      return { event: mockEvent };
+    // Validate required fields
+    if (!eventData || typeof eventData !== 'object') {
+      throw new Error('Invalid event data - must be object');
     }
+    
+    const requiredFields = ['title', 'date', 'time', 'venue', 'blurb'];
+    for (const field of requiredFields) {
+      if (!eventData[field as keyof typeof eventData]) {
+        throw new Error(`Missing required field: ${field}`);
+      }
+    }
+    
+    // Clean the data to match expected format
+    const cleanEventData = {
+      title: String(eventData.title).trim(),
+      date: String(eventData.date),
+      time: String(eventData.time).trim(),
+      venue: String(eventData.venue).trim(),
+      tags: Array.isArray(eventData.tags) ? eventData.tags : [],
+      blurb: String(eventData.blurb).trim(),
+      status: eventData.status || 'upcoming',
+      capacity: eventData.capacity ? Number(eventData.capacity) : undefined,
+      currentRegistrations: eventData.currentRegistrations ? Number(eventData.currentRegistrations) : 0,
+      priority: Number(eventData.priority) || 0,
+      isActive: eventData.isActive !== false
+    };
+    
+    console.log('eventsApi.create - Clean event data:', cleanEventData);
+    console.log('eventsApi.create - Stringified data:', JSON.stringify(cleanEventData));
     
     const response = await apiRequest<{ event: Event }>('/events', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(eventData)
+      body: JSON.stringify(cleanEventData)
     });
     return response.data;
   },
