@@ -18,9 +18,11 @@
   },
   "include": [
     "src/components",
-    "src/hooks",
+    "src/hooks", 
     "src/services",
+    "src/utils/navigation.ts",
     "src/App.tsx",
+    "src/Router.tsx",
     "src/main.tsx",
     "src/index.css"
   ],

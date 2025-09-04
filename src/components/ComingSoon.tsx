@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Construction, ArrowLeft, Calendar, BookOpen } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 interface ComingSoonProps {
   title: string;
@@ -18,13 +17,11 @@ const ComingSoon: React.FC<ComingSoonProps> = ({
   expectedDate,
   showBackButton = true 
 }) => {
-  const navigate = useNavigate();
-
   const handleGoBack = () => {
     if (window.history.length > 1) {
-      navigate(-1);
+      window.history.back();
     } else {
-      navigate('/');
+      window.location.href = '/';
     }
   };
 
