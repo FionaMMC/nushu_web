@@ -17,13 +17,13 @@ import {
   Eye,
   Archive
 } from 'lucide-react';
-import { adminApi, eventsApi, galleryApi, contactsApi, authStorage, Event, GalleryImage, Contact } from '../../services/api';
+import { adminApi, eventsApi, galleryApi, contactsApi, registrationsApi, authStorage, Event, GalleryImage, Contact, Registration } from '../../services/api';
 import { useAsyncAction } from '../../hooks/useApi';
 import EventForm from './EventForm';
 import GalleryUpload from './GalleryUpload';
 
 const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'events' | 'gallery' | 'contacts' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'events' | 'gallery' | 'contacts' | 'registrations' | 'settings'>('dashboard');
   const [showEventForm, setShowEventForm] = useState(false);
   const [showGalleryUpload, setShowGalleryUpload] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
@@ -31,7 +31,9 @@ const AdminDashboard: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
+  const [registrations, setRegistrations] = useState<any[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [selectedEventForRegistrations, setSelectedEventForRegistrations] = useState<Event | null>(null);
 
   const token = authStorage.getToken();
 
@@ -50,6 +52,14 @@ const AdminDashboard: React.FC = () => {
 
   const { execute: loadContacts, loading: contactsLoading } = useAsyncAction(
     () => contactsApi.getAll({ limit: 100 }, token!)
+  );
+
+  const { execute: loadRegistrationStats, loading: registrationsLoading } = useAsyncAction(
+    () => registrationsApi.getStats(token!)
+  );
+
+  const { execute: loadEventRegistrations, loading: eventRegistrationsLoading } = useAsyncAction(
+    (eventId: string) => registrationsApi.getByEvent(eventId, token!)
   );
 
   const { execute: saveEvent, loading: saveEventLoading } = useAsyncAction(
@@ -128,6 +138,8 @@ const AdminDashboard: React.FC = () => {
       loadGallery().then(data => setGalleryImages(data.images)).catch(console.error);
     } else if (activeTab === 'contacts' && contacts.length === 0) {
       loadContacts().then(data => setContacts(data.data.contacts)).catch(console.error);
+    } else if (activeTab === 'registrations' && registrations.length === 0) {
+      loadRegistrationStats().then(data => setRegistrations(data.stats)).catch(console.error);
     }
   }, [activeTab]);
 
@@ -277,6 +289,7 @@ const AdminDashboard: React.FC = () => {
                   { id: 'events', label: 'Events', icon: Calendar },
                   { id: 'gallery', label: 'Gallery', icon: Images },
                   { id: 'contacts', label: 'Contacts', icon: MessageSquare },
+                  { id: 'registrations', label: 'Registrations', icon: Users },
                   { id: 'settings', label: 'Settings', icon: Settings }
                 ].map(({ id, label, icon: Icon }) => (
                   <button
@@ -638,6 +651,107 @@ const AdminDashboard: React.FC = () => {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'registrations' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-serif text-nushu-sage">Event Registrations</h2>
+            </div>
+            
+            {registrationsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-nushu-terracotta"></div>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {registrations.length === 0 ? (
+                  <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+                    <Users className="w-16 h-16 text-nushu-sage/30 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-nushu-sage mb-2">No Registrations Found</h3>
+                    <p className="text-nushu-sage/60">
+                      Registration data will appear here when people sign up for events.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-6">
+                    {registrations.map((eventStats) => (
+                      <div key={eventStats._id} className="bg-white p-6 rounded-lg shadow-sm">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-nushu-sage mb-2">
+                              Event Registrations
+                            </h3>
+                            <div className="flex items-center gap-4 text-sm text-nushu-sage/60">
+                              <span className="flex items-center gap-1">
+                                <Users className="w-4 h-4" />
+                                {eventStats.count} registered
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-4 h-4" />
+                                Latest: {new Date(eventStats.recentRegistration).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setSelectedEventForRegistrations({ _id: eventStats._id } as Event);
+                              loadEventRegistrations(eventStats._id).then((data) => {
+                                console.log('Event registrations:', data);
+                              });
+                            }}
+                            className="px-4 py-2 text-sm bg-nushu-terracotta text-white rounded-lg hover:bg-nushu-terracotta/90 transition-colors"
+                          >
+                            View Details
+                          </button>
+                        </div>
+                        
+                        {/* Registration List Preview */}
+                        <div className="border-t border-nushu-sage/10 pt-4">
+                          <div className="space-y-3">
+                            {eventStats.registrations.slice(0, 3).map((registration: Registration) => (
+                              <div key={registration._id} className="flex items-center justify-between p-3 bg-nushu-cream/30 rounded-lg">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-3">
+                                    <div>
+                                      <p className="font-medium text-nushu-sage">{registration.name}</p>
+                                      <p className="text-sm text-nushu-sage/60">{registration.email}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className={`px-2 py-1 text-xs rounded-full ${
+                                    registration.status === 'confirmed' 
+                                      ? 'bg-green-100 text-green-800'
+                                      : registration.status === 'pending'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {registration.status}
+                                  </span>
+                                  <span className="text-sm text-nushu-sage/60">
+                                    {new Date(registration.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {eventStats.registrations.length > 3 && (
+                              <div className="text-center py-2">
+                                <span className="text-sm text-nushu-sage/60">
+                                  and {eventStats.registrations.length - 3} more...
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 

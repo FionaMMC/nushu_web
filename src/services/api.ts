@@ -533,6 +533,103 @@ export const contactsApi = {
   }
 };
 
+// Registration interface
+export interface Registration {
+  _id: string;
+  eventId: string;
+  name: string;
+  email: string;
+  phone?: string;
+  notes?: string;
+  status: 'confirmed' | 'pending' | 'cancelled';
+  registrationDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface RegistrationResponse {
+  registrations: Registration[];
+  count: number;
+  eventId: string;
+}
+
+interface RegistrationStats {
+  _id: string;
+  count: number;
+  recentRegistration: string;
+  registrations: Registration[];
+}
+
+// Registrations API
+export const registrationsApi = {
+  // Get registration statistics for all events (admin only)
+  getStats: async (token: string): Promise<{ stats: RegistrationStats[] }> => {
+    const response = await apiRequest<{ stats: RegistrationStats[] }>('/registrations', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  },
+
+  // Get registrations for specific event (admin only)
+  getByEvent: async (eventId: string, token: string): Promise<RegistrationResponse> => {
+    const response = await apiRequest<RegistrationResponse>(`/registrations?eventId=${eventId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  },
+
+  // Get single registration (admin only)
+  getById: async (registrationId: string, token: string): Promise<{ registration: Registration }> => {
+    const response = await apiRequest<{ registration: Registration }>(`/registrations?registrationId=${registrationId}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
+  },
+
+  // Create registration (public endpoint)
+  create: async (registrationData: {
+    eventId: string;
+    name: string;
+    email: string;
+    phone?: string;
+    notes?: string;
+  }): Promise<{ registration: Registration }> => {
+    const response = await apiRequest<{ registration: Registration }>('/registrations', {
+      method: 'POST',
+      body: JSON.stringify(registrationData)
+    });
+    return response.data;
+  },
+
+  // Update registration (admin only)
+  update: async (registrationId: string, updateData: Partial<Registration>, token: string): Promise<{ registration: Registration }> => {
+    const response = await apiRequest<{ registration: Registration }>(`/registrations?registrationId=${registrationId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(updateData)
+    });
+    return response.data;
+  },
+
+  // Cancel registration (admin only)
+  cancel: async (registrationId: string, token: string): Promise<void> => {
+    await apiRequest(`/registrations?registrationId=${registrationId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  }
+};
+
 // Error handling utility
 export const handleApiError = (error: any): string => {
   if (error?.message) {
