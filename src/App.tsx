@@ -411,6 +411,77 @@ export default function NusHuSocietySite() {
     "/WechatIMG1021.jpg",
     "/crying-bride2.jpg",
     "/nushu-embroidery.JPG",
+    "/crying-bride1.JPG",
+    "/成人礼.JPG",
+    "/坐歌堂.JPG",
+    "/永州地图.jpg",
+  ];
+
+  // Static gallery images from public folder
+  const staticGalleryImages = [
+    {
+      id: "static-1",
+      src: "/WechatIMG1020.jpg",
+      title: "Nüshu Calligraphy Workshop",
+      alt: "Students practicing Nüshu calligraphy",
+      description: "Workshop participants learning traditional Nüshu writing techniques"
+    },
+    {
+      id: "static-2", 
+      src: "/WechatIMG1021.jpg",
+      title: "Community Gathering",
+      alt: "Community members gathered for cultural activities",
+      description: "Cultural exchange and discussion session"
+    },
+    {
+      id: "static-3",
+      src: "/crying-bride1.JPG", 
+      title: "Traditional Nüshu Text",
+      alt: "Historical Nüshu manuscript",
+      description: "Example of traditional women's writing"
+    },
+    {
+      id: "static-4",
+      src: "/crying-bride2.jpg",
+      title: "Nüshu Documentation",
+      alt: "Documentation of Nüshu texts",
+      description: "Preserving the written heritage"
+    },
+    {
+      id: "static-5",
+      src: "/nushu-embroidery.JPG",
+      title: "Nüshu Embroidery",
+      alt: "Traditional embroidery with Nüshu characters",
+      description: "Integration of writing and textile arts"
+    },
+    {
+      id: "static-6",
+      src: "/成人礼.JPG", 
+      title: "Coming of Age Ceremony",
+      alt: "Traditional coming of age ceremony",
+      description: "Cultural celebration and rite of passage"
+    },
+    {
+      id: "static-7",
+      src: "/密语者.jpg",
+      title: "The Secret Writers",
+      alt: "Historical photo of Nüshu practitioners", 
+      description: "Women who preserved the writing tradition"
+    },
+    {
+      id: "static-8",
+      src: "/永州地图.jpg",
+      title: "Yongzhou Regional Map", 
+      alt: "Map showing Nüshu region",
+      description: "Geographic origins of Nüshu culture"
+    },
+    {
+      id: "static-9",
+      src: "/坐歌堂.JPG",
+      title: "Zuoge Hall",
+      alt: "Traditional singing hall",
+      description: "Cultural gathering space for women"
+    }
   ];
 
   // compute and keep a per-browser total wishes across all events
@@ -585,14 +656,21 @@ export default function NusHuSocietySite() {
             >
               <div className="aspect-[3/4] bg-nushu-cream relative overflow-hidden">
                 <div className="absolute inset-0 grid grid-cols-2 grid-rows-4 gap-2 p-6">
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <img
+                  {heroPhotos.slice(0, 8).map((photo, i) => (
+                    <motion.div
                       key={i}
-                      src={heroPhotos[i % heroPhotos.length]}
-                      alt=""
-                      loading="lazy"
-                      className="w-full h-full object-cover"
-                    />
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
+                      className="overflow-hidden hover:scale-105 transition-transform duration-300"
+                    >
+                      <img
+                        src={photo}
+                        alt=""
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                      />
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -788,6 +866,7 @@ export default function NusHuSocietySite() {
       {/* Gallery */}
       <Section id="gallery" title={t.gallery.heading} icon={Images}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          {/* Use dynamic images if available, otherwise fallback to static images */}
           {galleryLoading ? (
             // Loading state
             Array.from({ length: 8 }).map((_, i) => (
@@ -799,14 +878,14 @@ export default function NusHuSocietySite() {
               </div>
             ))
           ) : galleryImages.length > 0 ? (
-            // Display actual images
+            // Display dynamic API images when available
             galleryImages.map((image) => (
               <motion.div
                 key={image._id}
                 initial={{ opacity: 0, y: 8 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="aspect-[3/4] bg-nushu-cream overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300"
+                className="aspect-[3/4] bg-nushu-cream overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300 relative"
               >
                 <img
                   src={image.thumbnailUrl}
@@ -830,22 +909,45 @@ export default function NusHuSocietySite() {
                 </div>
               </motion.div>
             ))
-          ) : galleryError ? (
-            // Error state
+          ) : (
+            // Display static images from public folder
+            staticGalleryImages.slice(0, 8).map((image) => (
+              <motion.div
+                key={image.id}
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="aspect-[3/4] bg-nushu-cream overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300 relative"
+              >
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  onError={(e) => {
+                    // Fallback to placeholder if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.parentElement?.classList.add('bg-gradient-to-b', 'from-nushu-sage/10', 'to-nushu-terracotta/10');
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                  <div className="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center p-4">
+                    <h4 className="font-medium text-sm mb-1">{image.title}</h4>
+                    <p className="text-xs opacity-90">{image.description.length > 80 ? `${image.description.substring(0, 80)}...` : image.description}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))
+          )}
+
+          {/* Fallback state when both dynamic and static fail */}
+          {galleryError && staticGalleryImages.length === 0 && (
             <div className="col-span-full">
               <div className="text-center py-16">
                 <AlertCircle className="w-16 h-16 text-nushu-sage/30 mx-auto mb-6" />
                 <h3 className="text-xl font-serif text-nushu-sage mb-4">Gallery Unavailable</h3>
                 <p className="text-nushu-sage/70 mb-8">Unable to load gallery images at this time.</p>
-              </div>
-            </div>
-          ) : (
-            // No images state
-            <div className="col-span-full">
-              <div className="text-center py-16">
-                <Images className="w-16 h-16 text-nushu-sage/30 mx-auto mb-6" />
-                <h3 className="text-xl font-serif text-nushu-sage mb-4">Gallery Coming Soon</h3>
-                <p className="text-nushu-sage/70">We're preparing beautiful images to share with you.</p>
               </div>
             </div>
           )}
