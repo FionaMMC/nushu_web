@@ -95,7 +95,8 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public - commented out to allow static assets
+# public/dist - if you have build outputs in public folder
 
 # Storybook build outputs
 .out
