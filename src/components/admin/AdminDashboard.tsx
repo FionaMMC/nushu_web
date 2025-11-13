@@ -348,8 +348,7 @@ const AdminDashboard: React.FC = () => {
                     {dashboardData.recentActivity.events.map((event: any) => (
                       <div key={event._id} className="flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full ${
-                          event.status === 'upcoming' ? 'bg-nushu-terracotta' : 
-                          event.status === 'ongoing' ? 'bg-green-500' : 'bg-nushu-sage'
+                          event.status === 'current' ? 'bg-nushu-terracotta' : 'bg-nushu-sage'
                         }`} />
                         <div className="flex-1 min-w-0">
                           <p className="text-nushu-sage font-medium truncate">{event.title}</p>

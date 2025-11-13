@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authenticateAdmin, generateToken, verifyCredentials } from '../../utils/auth.js';
-import { Event } from '../../models/Event.js';
+import { WebEvent } from '../../models/WebEvent.js';
 import { GalleryImage } from '../../models/Gallery.js';
 
 const router = Router();
@@ -56,15 +56,15 @@ router.get('/dashboard', authenticateAdmin, async (req, res) => {
   try {
     const [
       totalEvents,
-      upcomingEvents,
+      currentEvents,
       totalImages,
       recentEvents,
       recentImages
     ] = await Promise.all([
-      Event.countDocuments({ isActive: true }),
-      Event.countDocuments({ status: 'upcoming', isActive: true }),
+      WebEvent.countDocuments({ isActive: true }),
+      WebEvent.countDocuments({ status: 'current', isActive: true }),
       GalleryImage.countDocuments({ isActive: true }),
-      Event.find({ isActive: true })
+      WebEvent.find({ isActive: true })
         .sort({ createdAt: -1 })
         .limit(5)
         .select('title date status createdAt'),
@@ -73,15 +73,15 @@ router.get('/dashboard', authenticateAdmin, async (req, res) => {
         .limit(5)
         .select('title category createdAt')
     ]);
-    
+
     const dashboardData = {
       stats: {
         totalEvents,
-        upcomingEvents,
+        upcomingEvents: currentEvents, // Keep the key name for backward compatibility
         totalImages,
-        completedEvents: await Event.countDocuments({ 
-          status: 'completed', 
-          isActive: true 
+        completedEvents: await WebEvent.countDocuments({
+          status: 'past',
+          isActive: true
         })
       },
       recentActivity: {
@@ -117,7 +117,7 @@ router.get('/verify', authenticateAdmin, (req, res) => {
 router.get('/health', authenticateAdmin, async (req, res) => {
   try {
     // Check database connectivity
-    const dbStatus = await Event.findOne().limit(1);
+    const dbStatus = await WebEvent.findOne().limit(1);
     
     const healthData = {
       status: 'healthy',

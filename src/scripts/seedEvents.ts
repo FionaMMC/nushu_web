@@ -3,25 +3,23 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Event model definition (same as in API)
-interface IEvent extends mongoose.Document {
+// WebEvent model definition (same as in API)
+interface IWebEvent extends mongoose.Document {
   title: string;
   date: string;
   time: string;
   venue: string;
   tags: string[];
   blurb: string;
-  status: 'upcoming' | 'ongoing' | 'completed';
+  status: 'current' | 'past';
   registrationLink?: string;
-  capacity?: number;
-  currentRegistrations?: number;
   priority: number;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const EventSchema = new mongoose.Schema<IEvent>({
+const WebEventSchema = new mongoose.Schema<IWebEvent>({
   title: {
     type: String,
     required: [true, 'Event title is required'],
@@ -62,22 +60,14 @@ const EventSchema = new mongoose.Schema<IEvent>({
   },
   status: {
     type: String,
-    enum: ['upcoming', 'ongoing', 'completed'],
-    default: 'upcoming',
+    enum: ['current', 'past'],
+    default: 'current',
     required: true
   },
   registrationLink: {
     type: String,
-    trim: true
-  },
-  capacity: {
-    type: Number,
-    min: [1, 'Capacity must be at least 1']
-  },
-  currentRegistrations: {
-    type: Number,
-    default: 0,
-    min: [0, 'Current registrations cannot be negative']
+    trim: true,
+    default: ''
   },
   isActive: {
     type: Boolean,
@@ -85,14 +75,16 @@ const EventSchema = new mongoose.Schema<IEvent>({
   },
   priority: {
     type: Number,
-    default: 0
+    default: 0,
+    min: [-100, 'Priority cannot be less than -100'],
+    max: [100, 'Priority cannot exceed 100']
   }
 }, {
   timestamps: true,
   versionKey: false
 });
 
-const Event = mongoose.models.Event || mongoose.model<IEvent>('Event', EventSchema);
+const WebEvent = mongoose.models.WebEvent || mongoose.model<IWebEvent>('WebEvent', WebEventSchema);
 
 // Database connection helper
 let isConnected = false;
@@ -122,10 +114,8 @@ const seedEvents = [
     venue: "Law Library, Law Group Study Room M107",
     tags: ["Seminar", "Social"],
     blurb: "A welcoming session to introduce Nüshu for the semester, including an overview, practice, and social time.",
-    status: "upcoming",
-    registrationLink: "#",
-    capacity: 30,
-    currentRegistrations: 12,
+    status: "current",
+    registrationLink: "https://example.com/register",
     priority: 10,
     isActive: true,
   },
@@ -136,10 +126,8 @@ const seedEvents = [
     venue: "Fisher Library, Learning Studio 1",
     tags: ["Workshop", "Hands-on"],
     blurb: "Technique drills, stroke analysis, and stitched-letter forms on cloth. Materials provided.",
-    status: "upcoming",
-    registrationLink: "#",
-    capacity: 20,
-    currentRegistrations: 18,
+    status: "current",
+    registrationLink: "https://example.com/register",
     priority: 8,
     isActive: true,
   },
@@ -150,9 +138,8 @@ const seedEvents = [
     venue: "Quadrangle Building, Room S414",
     tags: ["Reading Group", "Academic"],
     blurb: "Discussion of recent scholarship on women's writing systems across cultures, with focus on Nüshu documentation.",
-    status: "upcoming",
-    capacity: 15,
-    currentRegistrations: 7,
+    status: "current",
+    registrationLink: "",
     priority: 6,
     isActive: true,
   }
@@ -166,20 +153,20 @@ async function seedDatabase() {
     await connectDatabase();
     console.log('Database connection successful!');
     
-    console.log('Clearing existing events...');
-    const deleteResult = await Event.deleteMany({});
-    console.log(`Deleted ${deleteResult.deletedCount} existing events`);
-    
-    console.log('Seeding events...');
+    console.log('Clearing existing web events...');
+    const deleteResult = await WebEvent.deleteMany({});
+    console.log(`Deleted ${deleteResult.deletedCount} existing web events`);
+
+    console.log('Seeding web events...');
     console.log(`About to insert ${seedEvents.length} events`);
-    const insertResult = await Event.insertMany(seedEvents);
+    const insertResult = await WebEvent.insertMany(seedEvents);
     console.log(`Successfully inserted ${insertResult.length} events`);
-    
+
     console.log('✅ Database seeded successfully!');
     console.log(`📊 Added ${seedEvents.length} events to the database`);
-    
-    const events = await Event.find().sort({ priority: -1, date: 1 });
-    console.log('\n📅 Events in database:');
+
+    const events = await WebEvent.find().sort({ priority: -1, date: 1 });
+    console.log('\n📅 Web Events in database:');
     events.forEach(event => {
       console.log(`  - ${event.title} (${event.date}) - ${event.status}`);
     });

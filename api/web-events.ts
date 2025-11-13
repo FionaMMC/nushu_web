@@ -180,7 +180,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           } = query;
 
           const filters: any = { isActive: true };
-          if (status) {
+          if (status && status !== 'all') {
             filters.status = status;
           }
 

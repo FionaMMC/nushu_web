@@ -6,7 +6,6 @@ import { fileURLToPath } from 'url';
 import { connectDatabase } from './config/database.js';
 
 // Route imports
-import eventsRoutes from './api/routes/events.js';
 import galleryRoutes from './api/routes/gallery.js';
 import adminRoutes from './api/routes/admin.js';
 import contactsRoutes from './api/routes/contacts.js';
@@ -50,7 +49,6 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use('/api/events', eventsRoutes);
 app.use('/api/web-events', webEventsRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/admin', adminRoutes);

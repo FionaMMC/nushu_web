@@ -3,24 +3,23 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-// Event model definition (same as in events.ts)
-interface IEvent extends mongoose.Document {
+// WebEvent model definition (same as in web-events.ts)
+interface IWebEvent extends mongoose.Document {
   title: string;
   date: string;
   time: string;
   venue: string;
   tags: string[];
   blurb: string;
-  status: 'upcoming' | 'ongoing' | 'completed';
-  capacity?: number;
-  currentRegistrations?: number;
+  status: 'current' | 'past';
+  registrationLink?: string;
   priority: number;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const EventSchema = new mongoose.Schema<IEvent>({
+const WebEventSchema = new mongoose.Schema<IWebEvent>({
   title: {
     type: String,
     required: [true, 'Event title is required'],
@@ -61,22 +60,14 @@ const EventSchema = new mongoose.Schema<IEvent>({
   },
   status: {
     type: String,
-    enum: ['upcoming', 'ongoing', 'completed'],
-    default: 'upcoming',
+    enum: ['current', 'past'],
+    default: 'current',
     required: true
   },
   registrationLink: {
     type: String,
-    trim: true
-  },
-  capacity: {
-    type: Number,
-    min: [1, 'Capacity must be at least 1']
-  },
-  currentRegistrations: {
-    type: Number,
-    default: 0,
-    min: [0, 'Current registrations cannot be negative']
+    trim: true,
+    default: ''
   },
   isActive: {
     type: Boolean,
@@ -84,7 +75,9 @@ const EventSchema = new mongoose.Schema<IEvent>({
   },
   priority: {
     type: Number,
-    default: 0
+    default: 0,
+    min: [-100, 'Priority cannot be less than -100'],
+    max: [100, 'Priority cannot exceed 100']
   }
 }, {
   timestamps: true,
@@ -152,7 +145,7 @@ const ContactSchema = new mongoose.Schema<IContact>({
   toObject: { virtuals: true }
 });
 
-const Event = mongoose.models.Event || mongoose.model<IEvent>('Event', EventSchema);
+const WebEvent = mongoose.models.WebEvent || mongoose.model<IWebEvent>('WebEvent', WebEventSchema);
 const Contact = mongoose.models.Contact || mongoose.model<IContact>('Contact', ContactSchema);
 
 // Database connection helper
@@ -260,17 +253,17 @@ async function handler(req: VercelRequest, res: VercelResponse) {
 
           const [
             totalEvents,
-            upcomingEvents,
+            currentEvents,
             totalContacts,
             newContacts,
             recentEvents,
             recentContacts
           ] = await Promise.all([
-            Event.countDocuments({ isActive: true }),
-            Event.countDocuments({ status: 'upcoming', isActive: true }),
+            WebEvent.countDocuments({ isActive: true }),
+            WebEvent.countDocuments({ status: 'current', isActive: true }),
             Contact.countDocuments(),
             Contact.countDocuments({ status: 'new' }),
-            Event.find({ isActive: true })
+            WebEvent.find({ isActive: true })
               .sort({ createdAt: -1 })
               .limit(5)
               .select('title date status'),
@@ -280,20 +273,15 @@ async function handler(req: VercelRequest, res: VercelResponse) {
               .select('name email status createdAt')
           ]);
 
-          const totalRegistrations = await Event.aggregate([
-            { $match: { isActive: true } },
-            { $group: { _id: null, total: { $sum: '$currentRegistrations' } } }
-          ]);
-
           return res.json({
             success: true,
             data: {
               stats: {
                 totalEvents,
-                upcomingEvents,
+                upcomingEvents: currentEvents, // Keep key for compatibility
                 totalContacts,
                 newContacts,
-                totalRegistrations: totalRegistrations[0]?.total || 0
+                totalRegistrations: 0 // Removed registration tracking
               },
               recentActivity: {
                 events: recentEvents,
