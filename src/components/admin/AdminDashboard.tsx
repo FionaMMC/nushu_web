@@ -402,8 +402,7 @@ const AdminDashboard: React.FC = () => {
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-lg font-medium text-nushu-sage">{event.title}</h3>
                         <span className={`px-2 py-1 text-xs rounded ${
-                          event.status === 'upcoming' ? 'bg-nushu-terracotta/10 text-nushu-terracotta' :
-                          event.status === 'ongoing' ? 'bg-green-100 text-green-700' : 'bg-nushu-sage/10 text-nushu-sage'
+                          event.status === 'current' ? 'bg-nushu-terracotta/10 text-nushu-terracotta' : 'bg-nushu-sage/10 text-nushu-sage'
                         }`}>
                           {event.status}
                         </span>

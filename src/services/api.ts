@@ -40,7 +40,7 @@ export interface Event {
   venue: string;
   tags: string[];
   blurb: string;
-  status: 'upcoming' | 'ongoing' | 'completed';
+  status: 'current' | 'past';
   priority: number;
   isActive: boolean;
   registrationLink?: string;

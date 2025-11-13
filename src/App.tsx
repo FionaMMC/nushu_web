@@ -301,18 +301,16 @@ function EventCard({
     >
       {/* Status indicator */}
       <div className={`absolute top-0 left-0 w-full h-1 ${
-        event.status === 'upcoming' ? 'bg-nushu-terracotta' :
-        event.status === 'ongoing' ? 'bg-green-500' : 'bg-nushu-sage'
+        event.status === 'current' ? 'bg-nushu-terracotta' : 'bg-nushu-sage'
       }`} />
-      
+
       <div className="p-8">
         {/* Header with wish button */}
         <div className="flex items-start justify-between mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-3">
               <span className={`px-3 py-1 text-xs font-medium uppercase tracking-wide ${
-                event.status === 'upcoming' ? 'bg-nushu-terracotta/10 text-nushu-terracotta' :
-                event.status === 'ongoing' ? 'bg-green-100 text-green-700' : 'bg-nushu-sage/10 text-nushu-sage'
+                event.status === 'current' ? 'bg-nushu-terracotta/10 text-nushu-terracotta' : 'bg-nushu-sage/10 text-nushu-sage'
               }`}>
                 {event.status}
               </span>
@@ -366,7 +364,7 @@ function EventCard({
             ))}
           </div>
           
-          {event.registrationLink && event.status === 'upcoming' && (
+          {event.registrationLink && event.status === 'current' && (
             <a
               href={event.registrationLink}
               className="inline-flex items-center gap-2 px-4 py-2 bg-nushu-sage text-white text-sm font-medium hover:bg-nushu-sage/90 transition-all duration-300 hover:scale-105"

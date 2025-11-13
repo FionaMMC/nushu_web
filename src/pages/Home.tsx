@@ -79,7 +79,10 @@ const translations = {
 export default function Home() {
   const [lang, setLang] = React.useState<'en' | 'zh'>('en');
   const t = translations[lang];
-  const { events = [] } = useUpcomingEvents(3);
+  const { events = [] } = useUpcomingEvents(10);
+
+  // Filter only current events
+  const currentEvents = events.filter(event => event.status === 'current').slice(0, 3);
 
   const heroPhotos = [
     '/WechatIMG1020.jpg',
@@ -236,21 +239,33 @@ export default function Home() {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {events.slice(0, 3).map((event, index) => (
-              <motion.div
-                key={event._id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="bg-white border border-nushu-sage/10 p-8 hover:shadow-lg transition-all duration-300 cursor-pointer"
-                onClick={() => navigateTo('/events')}
-              >
-                <h3 className="text-xl font-serif text-nushu-sage mb-3">{event.title}</h3>
-                <p className="text-sm text-nushu-sage/70 mb-4">{event.date} • {event.time}</p>
-                <p className="text-nushu-sage/80 leading-relaxed">{event.blurb}</p>
-              </motion.div>
-            ))}
+            {currentEvents.length > 0 ? (
+              currentEvents.map((event, index) => (
+                <motion.div
+                  key={event._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="bg-white border border-nushu-sage/10 p-8 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  onClick={() => navigateTo('/events')}
+                >
+                  <div className="mb-3">
+                    <span className="inline-block px-3 py-1 text-xs font-medium bg-nushu-terracotta/10 text-nushu-terracotta uppercase tracking-wide">
+                      Current
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-serif text-nushu-sage mb-3">{event.title}</h3>
+                  <p className="text-sm text-nushu-sage/70 mb-4">{event.date} • {event.time}</p>
+                  <p className="text-nushu-sage/80 leading-relaxed">{event.blurb}</p>
+                </motion.div>
+              ))
+            ) : (
+              <div className="lg:col-span-3 text-center py-12">
+                <Calendar className="w-12 h-12 text-nushu-sage/30 mx-auto mb-4" />
+                <p className="text-nushu-sage/70">No current events at the moment. Check back soon!</p>
+              </div>
+            )}
           </div>
 
           <motion.button

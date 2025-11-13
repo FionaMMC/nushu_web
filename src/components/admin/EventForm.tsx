@@ -17,7 +17,7 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
     venue: event?.venue || '',
     tags: event?.tags?.join(', ') || '',
     blurb: event?.blurb || '',
-    status: event?.status || 'upcoming' as const,
+    status: event?.status || 'current' as const,
     priority: event?.priority || 0,
     isActive: event?.isActive ?? true
   });
@@ -229,30 +229,9 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-nushu-sage/20 rounded-lg focus:ring-2 focus:ring-nushu-terracotta focus:border-nushu-terracotta"
             >
-              <option value="upcoming">Upcoming</option>
-              <option value="ongoing">Ongoing</option>
-              <option value="completed">Completed</option>
+              <option value="current">Current</option>
+              <option value="past">Past</option>
             </select>
-          </div>
-
-
-
-          {/* Priority */}
-          <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-nushu-sage mb-2">
-              Priority
-            </label>
-            <input
-              type="number"
-              name="priority"
-              value={formData.priority}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-nushu-sage/20 rounded-lg focus:ring-2 focus:ring-nushu-terracotta focus:border-nushu-terracotta"
-              placeholder="0 (normal priority)"
-              min="-100"
-              max="100"
-            />
-            <p className="text-nushu-sage/60 text-xs mt-1">Higher numbers appear first</p>
           </div>
 
           {/* Active Status */}
