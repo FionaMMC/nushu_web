@@ -558,9 +558,9 @@ export default function NusHuSocietySite() {
         <Container>
           <div className="flex items-center justify-between h-20">
             <a href="#home" className="flex items-center gap-3">
-              <Feather className="w-6 h-6 text-nushu-terracotta" />
+              <img src="/Logo-2.JPG" alt="Nushu Logo" className="h-12 w-auto" />
               <span className="font-serif text-xl font-medium text-nushu-sage">
-                Nüshu Society
+                Nushu Culture & Research Association
               </span>
             </a>
             <nav className="hidden lg:flex items-center gap-10 text-sm font-medium">
