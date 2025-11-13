@@ -101,6 +101,53 @@ const galleryImages = [
     description: 'Cultural gathering space for women',
     descriptionZh: '女性的文化聚会空间',
   },
+  // Nüshu Activity Records from LGM folder
+  {
+    id: '10',
+    src: '/LGM/IGM- Signature Picture.jpg',
+    title: 'Nüshu Activity Records',
+    titleZh: '女书活动记录',
+    alt: 'Nüshu event signature picture',
+    description: 'Signature moment from Nüshu community event',
+    descriptionZh: '女书社区活动标志性时刻',
+  },
+  {
+    id: '11',
+    src: '/LGM/IGM-1.jpg',
+    title: 'Nüshu Activity Records',
+    titleZh: '女书活动记录',
+    alt: 'Nüshu community activity',
+    description: 'Community members engaging in Nüshu practice',
+    descriptionZh: '社区成员参与女书实践',
+  },
+  {
+    id: '12',
+    src: '/LGM/IMG_02.jpg',
+    title: 'Nüshu Activity Records',
+    titleZh: '女书活动记录',
+    alt: 'Nüshu workshop activity',
+    description: 'Participants at Nüshu cultural workshop',
+    descriptionZh: '女书文化工作坊参与者',
+  },
+  // Nüshu Poster Designs
+  {
+    id: '13',
+    src: '/poster/Poster-01.JPG',
+    title: 'Nüshu Poster Design',
+    titleZh: '女书海报设计',
+    alt: 'Nüshu event poster design',
+    description: 'Creative poster design for Nüshu cultural events',
+    descriptionZh: '女书文化活动创意海报设计',
+  },
+  {
+    id: '14',
+    src: '/poster/Poster-02.jpg',
+    title: 'Nüshu Poster Design',
+    titleZh: '女书海报设计',
+    alt: 'Nüshu workshop poster',
+    description: 'Visual identity for Nüshu workshop promotion',
+    descriptionZh: '女书工作坊推广视觉设计',
+  },
 ];
 
 export default function Gallery() {
