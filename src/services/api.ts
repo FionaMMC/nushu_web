@@ -314,19 +314,29 @@ export const galleryApi = {
     return response.data;
   },
   
-  // Upload new image (admin only)
-  upload: async (formData: FormData, token: string): Promise<{ image: GalleryImage }> => {
-    const response = await apiRequest<{ image: GalleryImage }>('/gallery/upload', {
+  // Create new image record (admin only) - after uploading to Blob
+  create: async (imageData: {
+    title: string;
+    alt: string;
+    description?: string;
+    category?: string;
+    priority?: number;
+    imageUrl: string;
+    pathname: string;
+    fileSize: number;
+    mimeType: string;
+  }, token: string): Promise<{ image: GalleryImage }> => {
+    const response = await apiRequest<{ image: GalleryImage }>('/gallery', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`
-        // Don't set Content-Type - let the browser set it for FormData
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
       },
-      body: formData
+      body: JSON.stringify(imageData)
     });
     return response.data;
   },
-  
+
   // Update image metadata (admin only)
   update: async (id: string, imageData: Partial<GalleryImage>, token: string): Promise<{ image: GalleryImage }> => {
     const response = await apiRequest<{ image: GalleryImage }>(`/gallery/${id}`, {
@@ -338,10 +348,10 @@ export const galleryApi = {
     });
     return response.data;
   },
-  
+
   // Delete image (admin only)
   delete: async (id: string, permanent: boolean = false, token: string): Promise<void> => {
-    await apiRequest(`/gallery/${id}?permanent=${permanent}`, {
+    await apiRequest(`/gallery?imageId=${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`

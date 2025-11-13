@@ -102,18 +102,6 @@ const AdminDashboard: React.FC = () => {
     (eventId: string) => eventsApi.delete(eventId, token!)
   );
 
-  const { execute: uploadImage, loading: uploadImageLoading } = useAsyncAction(
-    async (file: File, metadata: any) => {
-      const formData = new FormData();
-      formData.append('image', file);
-      Object.entries(metadata).forEach(([key, value]) => {
-        if (value !== undefined) {
-          formData.append(key, String(value));
-        }
-      });
-      return await galleryApi.upload(formData, token!);
-    }
-  );
 
   const { execute: deleteImage, loading: deleteImageLoading } = useAsyncAction(
     (imageId: string) => galleryApi.delete(imageId, false, token!)
@@ -203,15 +191,14 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleUploadImage = async (file: File, metadata: any) => {
+  const handleGalleryUploadSuccess = async () => {
     try {
-      await uploadImage(file, metadata);
       setShowGalleryUpload(false);
       // Reload gallery
       const data = await loadGallery();
       setGalleryImages(data.images);
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('Error reloading gallery:', error);
     }
   };
 
@@ -269,9 +256,8 @@ const AdminDashboard: React.FC = () => {
   if (showGalleryUpload) {
     return (
       <GalleryUpload
-        onUpload={handleUploadImage}
+        onSuccess={handleGalleryUploadSuccess}
         onCancel={() => setShowGalleryUpload(false)}
-        loading={uploadImageLoading}
       />
     );
   }

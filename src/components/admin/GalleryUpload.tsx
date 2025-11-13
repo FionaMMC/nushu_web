@@ -1,21 +1,18 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, Image, X, FileText, Tag, Camera, Save } from 'lucide-react';
+import { upload } from '@vercel/blob/client';
+import { galleryApi, authStorage } from '../../services/api';
 
 interface GalleryUploadProps {
-  onUpload: (file: File, metadata: {
-    title: string;
-    description?: string;
-    alt: string;
-    category?: string;
-    priority?: number;
-  }) => Promise<void>;
+  onSuccess: () => void;
   onCancel: () => void;
-  loading?: boolean;
 }
 
-const GalleryUpload: React.FC<GalleryUploadProps> = ({ onUpload, onCancel, loading = false }) => {
+const GalleryUpload: React.FC<GalleryUploadProps> = ({ onSuccess, onCancel }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -113,19 +110,57 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ onUpload, onCancel, loadi
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm() || !selectedFile) return;
 
+    setUploading(true);
+    setUploadProgress(0);
+
     try {
-      await onUpload(selectedFile, {
-        title: formData.title.trim(),
-        description: formData.description.trim() || undefined,
-        alt: formData.alt.trim(),
-        category: formData.category,
-        priority: Number(formData.priority)
+      // Step 1: Upload file to Vercel Blob
+      console.log('Uploading file to Vercel Blob...');
+      setUploadProgress(30);
+
+      const token = authStorage.getToken();
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      const blob = await upload(selectedFile.name, selectedFile, {
+        access: 'public',
+        handleUploadUrl: '/api/gallery/upload',
       });
+
+      console.log('File uploaded to Blob:', blob.url);
+      setUploadProgress(70);
+
+      // Step 2: Save metadata to database
+      console.log('Saving metadata to database...');
+      await galleryApi.create({
+        title: formData.title.trim(),
+        alt: formData.alt.trim(),
+        description: formData.description.trim() || undefined,
+        category: formData.category,
+        priority: Number(formData.priority),
+        imageUrl: blob.url,
+        pathname: blob.pathname,
+        fileSize: selectedFile.size,
+        mimeType: selectedFile.type
+      }, token);
+
+      console.log('Image uploaded successfully!');
+      setUploadProgress(100);
+
+      // Success!
+      onSuccess();
     } catch (error) {
       console.error('Error uploading image:', error);
+      setErrors(prev => ({
+        ...prev,
+        submit: error instanceof Error ? error.message : 'Failed to upload image'
+      }));
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -202,6 +237,27 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ onUpload, onCancel, loadi
           
           {errors.file && <p className="text-red-500 text-sm mt-1">{errors.file}</p>}
         </div>
+
+        {errors.submit && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700 text-sm">{errors.submit}</p>
+          </div>
+        )}
+
+        {uploading && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm text-nushu-sage">
+              <span>Uploading...</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="w-full bg-nushu-cream rounded-full h-2 overflow-hidden">
+              <div
+                className="bg-nushu-terracotta h-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Title */}
@@ -305,18 +361,18 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ onUpload, onCancel, loadi
           <button
             type="button"
             onClick={onCancel}
-            disabled={loading}
+            disabled={uploading}
             className="px-6 py-3 border border-nushu-sage/20 text-nushu-sage rounded-lg hover:bg-nushu-cream transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
-            disabled={loading || !selectedFile}
+            disabled={uploading || !selectedFile}
             className="flex items-center gap-2 px-6 py-3 bg-nushu-terracotta text-white rounded-lg hover:bg-nushu-terracotta/90 transition-colors disabled:opacity-50"
           >
             <Save className="w-4 h-4" />
-            {loading ? 'Uploading...' : 'Upload Image'}
+            {uploading ? 'Uploading...' : 'Upload Image'}
           </button>
         </div>
       </form>
