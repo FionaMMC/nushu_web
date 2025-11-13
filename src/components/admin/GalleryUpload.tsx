@@ -128,7 +128,7 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ onSuccess, onCancel }) =>
 
       const blob = await upload(selectedFile.name, selectedFile, {
         access: 'public',
-        handleUploadUrl: '/api/gallery/upload',
+        handleUploadUrl: `/api/gallery/upload?token=${encodeURIComponent(token)}`,
       });
 
       console.log('File uploaded to Blob:', blob.url);

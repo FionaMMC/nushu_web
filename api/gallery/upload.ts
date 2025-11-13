@@ -26,21 +26,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ success: false, message: 'Method not allowed' });
   }
 
-  // Check authentication
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'Unauthorized - Missing token' });
-  }
-
-  try {
-    const token = authHeader.substring(7);
-    verifyToken(token);
-    console.log('POST /gallery/upload - Token verified successfully');
-  } catch (tokenError) {
-    console.log('POST /gallery/upload - Token verification failed:', String(tokenError));
-    return res.status(401).json({ success: false, message: 'Unauthorized - Invalid token' });
-  }
-
   try {
     const body = req.body as HandleUploadBody;
 
@@ -48,9 +33,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body,
       request: req,
       onBeforeGenerateToken: async (pathname) => {
-        // You can add additional validation here
+        // Authentication happens HERE in the callback
         console.log('Generating upload token for:', pathname);
 
+        // Get token from query parameter or Authorization header
+        let token: string | null = null;
+
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          token = authHeader.substring(7);
+        } else if (req.query.token) {
+          token = req.query.token as string;
+        }
+
+        if (!token) {
+          console.log('POST /gallery/upload - No token provided');
+          throw new Error('Unauthorized - Missing token');
+        }
+
+        try {
+          verifyToken(token);
+          console.log('POST /gallery/upload - Token verified successfully');
+        } catch (tokenError) {
+          console.log('POST /gallery/upload - Token verification failed:', String(tokenError));
+          throw new Error('Unauthorized - Invalid token');
+        }
+
+        // Token is valid, return the configuration
         return {
           allowedContentTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
           tokenPayload: JSON.stringify({
