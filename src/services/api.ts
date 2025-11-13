@@ -43,6 +43,7 @@ export interface Event {
   status: 'upcoming' | 'ongoing' | 'completed';
   priority: number;
   isActive: boolean;
+  registrationLink?: string;
   createdAt: string;
   updatedAt: string;
 }

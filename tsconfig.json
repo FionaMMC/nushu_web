@@ -18,13 +18,15 @@
   },
   "include": [
     "src/components",
-    "src/hooks", 
+    "src/pages",
+    "src/hooks",
     "src/services",
     "src/utils/navigation.ts",
     "src/App.tsx",
     "src/Router.tsx",
     "src/main.tsx",
-    "src/index.css"
+    "src/index.css",
+    "src/env.d.ts"
   ],
   "exclude": [
     "src/api",
