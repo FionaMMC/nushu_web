@@ -580,6 +580,15 @@ const AdminDashboard: React.FC = () => {
                     </div>
 
                     <div className="space-y-6">
+                      {selectedContact.interestedEvent && (
+                        <div>
+                          <h4 className="font-medium text-nushu-sage mb-2">Interested in Event</h4>
+                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                            <p className="text-blue-800">{selectedContact.interestedEvent}</p>
+                          </div>
+                        </div>
+                      )}
+
                       <div>
                         <h4 className="font-medium text-nushu-sage mb-2">Message</h4>
                         <div className="bg-nushu-cream p-4 rounded-lg">

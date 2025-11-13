@@ -408,6 +408,7 @@ export interface Contact {
   name: string;
   email: string;
   message: string;
+  interestedEvent?: string;
   status: 'new' | 'read' | 'responded' | 'archived';
   ipAddress?: string;
   userAgent?: string;
@@ -434,7 +435,7 @@ interface ContactsResponse {
 // Contacts API
 export const contactsApi = {
   // Public endpoint - submit contact form
-  submit: async (contactData: { name: string; email: string; message: string }) => {
+  submit: async (contactData: { name: string; email: string; message: string; interestedEvent?: string }) => {
     const response = await fetch(`${API_BASE_URL}/contacts`, {
       method: 'POST',
       headers: {
@@ -442,11 +443,11 @@ export const contactsApi = {
       },
       body: JSON.stringify(contactData)
     });
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     return response.json() as Promise<ApiResponse<{ id: string; timestamp: string }>>;
   },
   

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, MapPin, Calendar, Users, HeartHandshake, Heart, Loader2, AlertCircle } from 'lucide-react';
 import Layout from '../components/layout/Layout';
-import { contactsApi } from '../services/api';
+import { contactsApi, eventsApi, Event } from '../services/api';
 
 const translations = {
   en: {
@@ -54,6 +54,7 @@ const translations = {
       name: 'Full name',
       email: 'Email',
       interest: 'Interest Area',
+      interestedEvent: 'Interested in Event?',
       message: 'Your message',
       submit: 'Send',
       sending: 'Sending...',
@@ -70,6 +71,10 @@ const translations = {
       volunteering: 'Volunteer opportunities',
       research: 'Research inquiry',
       other: 'Other',
+    },
+    events: {
+      select: 'None',
+      loading: 'Loading events...',
     },
     contact: {
       email: 'Email',
@@ -112,6 +117,7 @@ const translations = {
       name: '姓名',
       email: '邮箱',
       interest: '兴趣领域',
+      interestedEvent: '感兴趣的活动？',
       message: '留言',
       submit: '发送',
       sending: '发送中...',
@@ -128,6 +134,10 @@ const translations = {
       volunteering: '志愿者机会',
       research: '研究咨询',
       other: '其他',
+    },
+    events: {
+      select: '无',
+      loading: '加载活动中...',
     },
     contact: {
       email: '邮箱',
@@ -147,6 +157,22 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const data = await eventsApi.getAll({ status: 'current', limit: 50 });
+        setEvents(data.events);
+      } catch (error) {
+        console.error('Failed to load events:', error);
+      } finally {
+        setEventsLoading(false);
+      }
+    }
+    loadEvents();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -156,6 +182,7 @@ export default function Contact() {
     const name = payload.name as string;
     const email = payload.email as string;
     const message = payload.message as string;
+    const interestedEvent = payload.interestedEvent as string;
 
     if (!name?.trim() || !email?.trim() || !message?.trim()) {
       setSubmitError(t.form.errorMessage);
@@ -170,6 +197,7 @@ export default function Contact() {
         name: name.trim(),
         email: email.trim(),
         message: message.trim(),
+        interestedEvent: interestedEvent || '',
       });
 
       setSubmitted(true);
@@ -401,6 +429,31 @@ export default function Contact() {
                         </select>
                         <label className="block text-sm font-medium text-nushu-sage/60 mb-2">
                           {t.form.interest}
+                        </label>
+                      </div>
+
+                      <div className="relative">
+                        <select
+                          name="interestedEvent"
+                          className="w-full border-0 border-b-2 border-nushu-sage/20 pb-4 pt-6 bg-transparent focus:border-nushu-terracotta focus:outline-none transition-colors text-nushu-sage"
+                        >
+                          <option value="" className="text-nushu-sage">
+                            {t.events.select}
+                          </option>
+                          {eventsLoading ? (
+                            <option disabled className="text-nushu-sage/40">
+                              {t.events.loading}
+                            </option>
+                          ) : (
+                            events.map((event) => (
+                              <option key={event._id} value={event.title} className="text-nushu-sage">
+                                {event.title} - {event.date}
+                              </option>
+                            ))
+                          )}
+                        </select>
+                        <label className="block text-sm font-medium text-nushu-sage/60 mb-2">
+                          {t.form.interestedEvent}
                         </label>
                       </div>
 

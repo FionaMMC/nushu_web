@@ -1,11 +1,16 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import mongoose from 'mongoose';
+import { Resend } from 'resend';
+import { ContactEmailTemplate } from '../src/components/email-template';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Contact model definition (inline to avoid import issues)
 interface IContact extends mongoose.Document {
   name: string;
   email: string;
   message: string;
+  interestedEvent?: string;
   status: 'new' | 'read' | 'responded' | 'archived';
   ipAddress?: string;
   userAgent?: string;
@@ -34,6 +39,11 @@ const contactSchema = new mongoose.Schema<IContact>({
     required: [true, 'Message is required'],
     trim: true,
     maxLength: [2000, 'Message cannot exceed 2000 characters']
+  },
+  interestedEvent: {
+    type: String,
+    trim: true,
+    default: ''
   },
   status: {
     type: String,
@@ -174,7 +184,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
 
       case 'POST':
         // Submit new contact (public endpoint)
-        const { name, email, message } = req.body;
+        const { name, email, message, interestedEvent } = req.body;
 
         if (!name || !email || !message) {
           return res.status(400).json({
@@ -187,6 +197,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           name: name.trim(),
           email: email.trim().toLowerCase(),
           message: message.trim(),
+          interestedEvent: interestedEvent || '',
           status: 'new'
         };
 
@@ -204,6 +215,32 @@ async function handler(req: VercelRequest, res: VercelResponse) {
 
         const newContact = new Contact(contactData);
         await newContact.save();
+
+        // Send email notification using Resend
+        try {
+          const contactEmail = process.env.CONTACT_EMAIL;
+          if (!contactEmail) {
+            console.warn('CONTACT_EMAIL not configured, skipping email notification');
+          } else if (!process.env.RESEND_API_KEY) {
+            console.warn('RESEND_API_KEY not configured, skipping email notification');
+          } else {
+            await resend.emails.send({
+              from: 'Nushu Culture & Research Association <onboarding@resend.dev>',
+              to: [contactEmail],
+              subject: `New Contact Form Submission from ${name}`,
+              react: ContactEmailTemplate({
+                name: contactData.name,
+                email: contactData.email,
+                message: contactData.message,
+                interestedEvent: contactData.interestedEvent
+              })
+            });
+            console.log('Contact notification email sent successfully');
+          }
+        } catch (emailError) {
+          // Log error but don't fail the contact submission
+          console.error('Failed to send email notification:', emailError);
+        }
 
         return res.status(201).json({
           success: true,

@@ -5,6 +5,7 @@ export interface IContact {
   name: string;
   email: string;
   message: string;
+  interestedEvent?: string;
   status: 'new' | 'read' | 'responded' | 'archived';
   ipAddress?: string;
   userAgent?: string;
@@ -33,6 +34,11 @@ const contactSchema = new mongoose.Schema<IContact>({
     required: [true, 'Message is required'],
     trim: true,
     maxLength: [2000, 'Message cannot exceed 2000 characters']
+  },
+  interestedEvent: {
+    type: String,
+    trim: true,
+    default: ''
   },
   status: {
     type: String,
