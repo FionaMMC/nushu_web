@@ -51,13 +51,15 @@ export interface Event {
 // Gallery image interface matching the backend model
 export interface GalleryImage {
   _id: string;
+  id?: string; // Alternative ID field
   title: string;
   description?: string;
   imageUrl: string;
-  thumbnailUrl: string;
+  thumbnailUrl?: string;
   alt: string;
   category: string;
-  s3Key: string;
+  blobUrl: string; // Vercel Blob URL
+  pathname: string; // Vercel Blob pathname for deletion
   fileSize: number;
   mimeType: string;
   width?: number;

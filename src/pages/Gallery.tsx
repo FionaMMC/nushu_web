@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Images } from 'lucide-react';
 import Layout from '../components/layout/Layout';
+import { galleryApi, GalleryImage } from '../services/api';
 
 const translations = {
   en: {
@@ -151,8 +152,42 @@ const galleryImages = [
 ];
 
 export default function Gallery() {
-  const [lang, setLang] = React.useState<'en' | 'zh'>('en');
+  const [lang, setLang] = useState<'en' | 'zh'>('en');
+  const [apiImages, setApiImages] = useState<GalleryImage[]>([]);
+  const [loadingImages, setLoadingImages] = useState(true);
   const t = translations[lang];
+
+  // Load dynamic images from API on mount
+  useEffect(() => {
+    const loadApiImages = async () => {
+      try {
+        setLoadingImages(true);
+        const response = await galleryApi.getAll({ limit: 100 });
+        setApiImages(response.images || []);
+      } catch (error) {
+        console.error('Error loading gallery images:', error);
+        setApiImages([]);
+      } finally {
+        setLoadingImages(false);
+      }
+    };
+
+    loadApiImages();
+  }, []);
+
+  // Combine static images with API images
+  const allImages = [
+    ...galleryImages,
+    ...apiImages.map((img) => ({
+      id: img._id || img.id,
+      src: img.imageUrl,
+      title: img.title,
+      titleZh: img.title, // API images don't have separate Chinese titles yet
+      alt: img.alt,
+      description: img.description || img.alt,
+      descriptionZh: img.description || img.alt,
+    })),
+  ];
 
   return (
     <Layout currentLang={lang} onLangChange={setLang}>
@@ -182,7 +217,7 @@ export default function Gallery() {
       <section className="py-28 lg:py-36">
         <div className="mx-auto w-full max-w-7xl px-8 lg:px-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
-            {galleryImages.map((image, index) => (
+            {allImages.map((image, index) => (
               <motion.div
                 key={image.id}
                 initial={{ opacity: 0, y: 20 }}
