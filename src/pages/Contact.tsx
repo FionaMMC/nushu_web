@@ -78,7 +78,7 @@ const translations = {
     },
     contact: {
       email: 'Email',
-      emailValue: 'nushu.society@sydney.edu.au',
+      emailValue: 'nushu.culture.research.assoc@gmail.com',
       location: 'Location',
       locationValue: 'University of Sydney\nCamperdown Campus',
       responseTime: 'Response Time',
