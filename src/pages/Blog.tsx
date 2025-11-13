@@ -40,37 +40,6 @@ const translations = {
   },
 };
 
-// Static blog posts (will be replaced with API data later)
-const staticPosts = [
-  {
-    id: '1',
-    title: 'The Origins of Nüshu: A Women\'s Script',
-    excerpt: 'Exploring the historical and cultural context of Nüshu\'s development in Jiangyong County...',
-    author: 'Research Team',
-    date: '2024-01-15',
-    category: 'Research',
-    image: '/密语者.jpg',
-  },
-  {
-    id: '2',
-    title: 'Calligraphy Workshop Reflections',
-    excerpt: 'Participants share their experiences learning Nüshu characters and strokes in our recent workshop...',
-    author: 'Community',
-    date: '2024-01-10',
-    category: 'Practice',
-    image: '/WechatIMG1020.jpg',
-  },
-  {
-    id: '3',
-    title: 'Women\'s Writing Systems Around the World',
-    excerpt: 'Comparative study of unique writing systems developed by and for women across different cultures...',
-    author: 'Research Team',
-    date: '2024-01-05',
-    category: 'Culture',
-    image: '/nushu-embroidery.JPG',
-  },
-];
-
 export default function Blog() {
   const [lang, setLang] = useState<'en' | 'zh'>('en');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -100,23 +69,18 @@ export default function Blog() {
     loadPosts();
   }, [selectedCategory]);
 
-  // Combine static posts with API posts (static first for now)
-  const allPosts = [
-    ...staticPosts,
-    ...apiPosts.map(post => ({
-      id: post._id,
-      title: post.title,
-      excerpt: post.excerpt || post.content.substring(0, 150) + '...',
-      author: post.author,
-      date: post.date,
-      category: post.category || 'General',
-      image: post.imageUrl || '/WechatIMG1020.jpg'
-    }))
-  ];
+  // Map API posts to display format
+  const allPosts = apiPosts.map(post => ({
+    id: post._id,
+    title: post.title,
+    excerpt: post.excerpt || post.content.substring(0, 150) + '...',
+    author: post.author,
+    date: post.date,
+    category: post.category || 'General',
+    image: post.imageUrl || '/WechatIMG1020.jpg'
+  }));
 
-  const posts = selectedCategory === 'all'
-    ? allPosts
-    : allPosts.filter(post => post.category.toLowerCase() === selectedCategory.toLowerCase());
+  const posts = allPosts;
 
   return (
     <Layout currentLang={lang} onLangChange={setLang}>
