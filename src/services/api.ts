@@ -139,7 +139,7 @@ async function apiRequest<T>(
   }
 }
 
-// Events API
+// Events API (using web-events endpoint)
 export const eventsApi = {
   // Get all events with optional filtering
   getAll: async (params: {
@@ -153,21 +153,21 @@ export const eventsApi = {
         .filter(([_, value]) => value !== undefined)
         .map(([key, value]) => [key, String(value)])
     ).toString();
-    
-    const endpoint = `/events${queryString ? `?${queryString}` : ''}`;
+
+    const endpoint = `/web-events${queryString ? `?${queryString}` : ''}`;
     const response = await apiRequest<EventsResponse>(endpoint);
     return response.data;
   },
-  
-  // Get upcoming events
-  getUpcoming: async (limit: number = 10): Promise<{ events: Event[] }> => {
-    const response = await apiRequest<EventsResponse>(`/events?status=upcoming&limit=${limit}`);
+
+  // Get upcoming events (now gets all events, filtering done on frontend)
+  getUpcoming: async (limit: number = 50): Promise<{ events: Event[] }> => {
+    const response = await apiRequest<EventsResponse>(`/web-events?limit=${limit}`);
     return { events: response.data.events };
   },
   
   // Get single event by ID
   getById: async (id: string): Promise<{ event: Event }> => {
-    const response = await apiRequest<{ event: Event }>(`/events?eventId=${id}`);
+    const response = await apiRequest<{ event: Event }>(`/web-events?eventId=${id}`);
     return response.data;
   },
   
@@ -209,18 +209,19 @@ export const eventsApi = {
       venue: String(eventData.venue).trim(),
       tags: Array.isArray(eventData.tags) ? eventData.tags : [],
       blurb: String(eventData.blurb).trim(),
-      status: eventData.status || 'upcoming',
+      status: eventData.status || 'current',
+      registrationLink: eventData.registrationLink || '',
       priority: Number(eventData.priority) || 0,
       isActive: eventData.isActive !== false
     };
-    
+
     console.log('eventsApi.create - Clean event data:', cleanEventData);
     console.log('eventsApi.create - Clean data type:', typeof cleanEventData);
     console.log('eventsApi.create - Clean data keys:', Object.keys(cleanEventData));
     console.log('eventsApi.create - Stringified clean data:', JSON.stringify(cleanEventData));
     console.log('=== FRONTEND API CREATE DEBUG END ===');
-    
-    const response = await apiRequest<{ event: Event }>('/events', {
+
+    const response = await apiRequest<{ event: Event }>('/web-events', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -232,7 +233,7 @@ export const eventsApi = {
   
   // Update event (admin only)
   update: async (id: string, eventData: Partial<Event>, token: string): Promise<{ event: Event }> => {
-    const response = await apiRequest<{ event: Event }>(`/events?eventId=${id}`, {
+    const response = await apiRequest<{ event: Event }>(`/web-events?eventId=${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -241,10 +242,10 @@ export const eventsApi = {
     });
     return response.data;
   },
-  
+
   // Delete event (admin only)
   delete: async (id: string, token: string): Promise<void> => {
-    await apiRequest(`/events?eventId=${id}`, {
+    await apiRequest(`/web-events?eventId=${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`
