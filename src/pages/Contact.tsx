@@ -81,6 +81,7 @@ const translations = {
       emailValue: 'nushu.culture.research.assoc@gmail.com',
       location: 'Location',
       locationValue: 'University of Sydney\nCamperdown Campus',
+      
       responseTime: 'Response Time',
       responseTimeValue: 'Within 48 hours',
       followText: 'Follow us for updates on workshops, events, and Nüshu research developments.',
