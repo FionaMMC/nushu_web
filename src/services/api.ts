@@ -70,6 +70,33 @@ export interface GalleryImage {
   updatedAt: string;
 }
 
+// Blog post interface matching the backend model
+export interface BlogPost {
+  _id: string;
+  id?: string;
+  title: string;
+  author: string;
+  date: string;
+  content: string;
+  excerpt?: string;
+  imageUrl?: string;
+  thumbnailUrl?: string;
+  imageBlobUrl?: string;
+  imagePathname?: string;
+  imageAlt?: string;
+  category?: string;
+  tags?: string[];
+  isPublished: boolean;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BlogResponse {
+  posts: BlogPost[];
+  pagination?: PaginationInfo;
+}
+
 // Generic API request function
 async function apiRequest<T>(
   endpoint: string, 
@@ -354,6 +381,82 @@ export const galleryApi = {
   // Delete image (admin only)
   delete: async (id: string, permanent: boolean = false, token: string): Promise<void> => {
     await apiRequest(`/gallery?imageId=${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  }
+};
+
+// Blog API
+export const blogApi = {
+  // Get all blog posts with optional filtering
+  getAll: async (params: {
+    category?: string;
+    published?: 'true' | 'false' | 'all';
+    limit?: number;
+    page?: number;
+  } = {}): Promise<BlogResponse> => {
+    const queryString = new URLSearchParams(
+      Object.entries(params)
+        .filter(([_, value]) => value !== undefined)
+        .map(([key, value]) => [key, String(value)])
+    ).toString();
+
+    const endpoint = `/blog${queryString ? `?${queryString}` : ''}`;
+    const response = await apiRequest<BlogResponse>(endpoint);
+    return response.data;
+  },
+
+  // Get single blog post by ID
+  getById: async (id: string): Promise<{ post: BlogPost }> => {
+    const response = await apiRequest<{ post: BlogPost }>(`/blog?blogId=${id}`);
+    return response.data;
+  },
+
+  // Create new blog post (admin only)
+  create: async (postData: {
+    title: string;
+    author: string;
+    content: string;
+    date?: string;
+    excerpt?: string;
+    imageUrl?: string;
+    imagePathname?: string;
+    imageAlt?: string;
+    category?: string;
+    tags?: string[];
+    isPublished?: boolean;
+    priority?: number;
+  }, token: string): Promise<{ post: BlogPost }> => {
+    const response = await apiRequest<{ post: BlogPost }>('/blog', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(postData)
+    });
+    return response.data;
+  },
+
+  // Update blog post (admin only)
+  update: async (id: string, postData: Partial<BlogPost>, token: string): Promise<{ post: BlogPost }> => {
+    const response = await apiRequest<{ post: BlogPost }>(`/blog?blogId=${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(postData)
+    });
+    return response.data;
+  },
+
+  // Delete blog post (admin only)
+  delete: async (id: string, token: string): Promise<void> => {
+    await apiRequest(`/blog?blogId=${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`

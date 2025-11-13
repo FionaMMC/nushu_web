@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BookOpen, Calendar, User, ArrowRight } from 'lucide-react';
 import Layout from '../components/layout/Layout';
+import { blogApi, BlogPost } from '../services/api';
+import { navigateTo } from '../utils/navigation';
 
 const translations = {
   en: {
@@ -70,12 +72,51 @@ const staticPosts = [
 ];
 
 export default function Blog() {
-  const [lang, setLang] = React.useState<'en' | 'zh'>('en');
+  const [lang, setLang] = useState<'en' | 'zh'>('en');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [apiPosts, setApiPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
   const t = translations[lang];
-  const [selectedCategory, setSelectedCategory] = React.useState<string>('all');
 
-  // For now, using static posts. This can be replaced with API calls later
-  const posts = staticPosts;
+  // Load blog posts from API
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        setLoading(true);
+        const response = await blogApi.getAll({
+          published: 'true',
+          limit: 50,
+          category: selectedCategory === 'all' ? undefined : selectedCategory
+        });
+        setApiPosts(response.posts || []);
+      } catch (error) {
+        console.error('Error loading blog posts:', error);
+        setApiPosts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPosts();
+  }, [selectedCategory]);
+
+  // Combine static posts with API posts (static first for now)
+  const allPosts = [
+    ...staticPosts,
+    ...apiPosts.map(post => ({
+      id: post._id,
+      title: post.title,
+      excerpt: post.excerpt || post.content.substring(0, 150) + '...',
+      author: post.author,
+      date: post.date,
+      category: post.category || 'General',
+      image: post.imageUrl || '/WechatIMG1020.jpg'
+    }))
+  ];
+
+  const posts = selectedCategory === 'all'
+    ? allPosts
+    : allPosts.filter(post => post.category.toLowerCase() === selectedCategory.toLowerCase());
 
   return (
     <Layout currentLang={lang} onLangChange={setLang}>
@@ -155,7 +196,11 @@ export default function Blog() {
       {/* Blog Posts */}
       <section className="py-28 lg:py-36">
         <div className="mx-auto w-full max-w-7xl px-8 lg:px-12">
-          {posts.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-nushu-terracotta"></div>
+            </div>
+          ) : posts.length === 0 ? (
             <div className="text-center py-16">
               <BookOpen className="w-16 h-16 text-nushu-sage/30 mx-auto mb-6" />
               <h3 className="text-2xl font-serif text-nushu-sage mb-4">{t.comingSoon.title}</h3>
@@ -170,7 +215,8 @@ export default function Blog() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="group bg-white border border-nushu-sage/10 overflow-hidden hover:shadow-lg transition-all duration-300"
+                  onClick={() => navigateTo(`/blog/${post.id}`)}
+                  className="group bg-white border border-nushu-sage/10 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
                 >
                   {/* Image */}
                   <div className="aspect-[16/9] bg-nushu-cream overflow-hidden">

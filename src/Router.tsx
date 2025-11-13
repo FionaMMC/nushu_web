@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Events from './pages/Events';
 import Blog from './pages/Blog';
+import BlogDetail from './pages/BlogDetail';
 import Gallery from './pages/Gallery';
 import Contact from './pages/Contact';
 
@@ -39,6 +40,10 @@ const Router: React.FC = () => {
 
   if (currentPath === '/blog') {
     return <Blog />;
+  }
+
+  if (currentPath.startsWith('/blog/')) {
+    return <BlogDetail />;
   }
 
   if (currentPath === '/gallery') {
