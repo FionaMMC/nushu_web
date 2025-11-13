@@ -5,10 +5,11 @@ export interface IGalleryImage extends Document {
   title: string;
   description?: string;
   imageUrl: string;
-  thumbnailUrl: string;
+  thumbnailUrl?: string;
   alt: string;
   category?: string;
-  s3Key: string;
+  blobUrl: string;
+  pathname: string;
   fileSize: number;
   mimeType: string;
   width?: number;
@@ -44,11 +45,10 @@ const GalleryImageSchema = new Schema<IGalleryImage>({
   },
   thumbnailUrl: {
     type: String,
-    required: [true, 'Thumbnail URL is required'],
     trim: true,
     validate: {
       validator: function(v: string) {
-        return /^https?:\/\/.+/.test(v);
+        return !v || /^https?:\/\/.+/.test(v);
       },
       message: 'Thumbnail URL must be a valid URL'
     }
@@ -69,9 +69,14 @@ const GalleryImageSchema = new Schema<IGalleryImage>({
     },
     default: 'general'
   },
-  s3Key: {
+  blobUrl: {
     type: String,
-    required: [true, 'S3 key is required for file management'],
+    required: [true, 'Blob URL is required'],
+    trim: true
+  },
+  pathname: {
+    type: String,
+    required: [true, 'Pathname is required for file management'],
     trim: true
   },
   fileSize: {
