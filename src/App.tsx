@@ -319,7 +319,7 @@ function EventCard({
               {event.title}
             </h3>
           </div>
-          
+
           <button
             aria-label="Wish to join"
             onClick={toggleHeart}
@@ -346,12 +346,12 @@ function EventCard({
               <span>{event.time}</span>
             </div>
           </div>
-          
+
           <div className="flex items-start gap-2 text-nushu-sage/80">
             <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <span className="text-sm">{event.venue}</span>
           </div>
-          
+
         </div>
 
         <p className="text-nushu-sage/90 leading-relaxed mb-6">{event.blurb}</p>
@@ -363,7 +363,7 @@ function EventCard({
               <Tag key={tag}>{tag}</Tag>
             ))}
           </div>
-          
+
           {event.registrationLink && event.status === 'current' && (
             <a
               href={event.registrationLink}

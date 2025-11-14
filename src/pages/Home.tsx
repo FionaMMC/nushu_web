@@ -247,17 +247,36 @@ export default function Home() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="bg-white border border-nushu-sage/10 p-8 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  className="group relative bg-white overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer"
                   onClick={() => navigateTo('/events')}
                 >
-                  <div className="mb-3">
-                    <span className="inline-block px-3 py-1 text-xs font-medium bg-nushu-terracotta/10 text-nushu-terracotta uppercase tracking-wide">
+                  {/* Event Poster */}
+                  <div className="aspect-[3/4] bg-nushu-cream overflow-hidden">
+                    <img
+                      src="/poster/poster-Snow Flower and the Secret Fan.jpg"
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.parentElement?.classList.add('bg-gradient-to-b', 'from-nushu-sage/10', 'to-nushu-terracotta/10');
+                      }}
+                    />
+                  </div>
+
+                  {/* Status Badge */}
+                  <div className="absolute top-4 left-4 right-4">
+                    <span className="inline-block px-3 py-1 text-xs font-medium uppercase tracking-wide bg-nushu-terracotta text-white shadow-lg">
                       Current
                     </span>
                   </div>
-                  <h3 className="text-xl font-serif text-nushu-sage mb-3">{event.title}</h3>
-                  <p className="text-sm text-nushu-sage/70 mb-4">{event.date} • {event.time}</p>
-                  <p className="text-nushu-sage/80 leading-relaxed">{event.blurb}</p>
+
+                  {/* Event Title */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-6">
+                    <h3 className="text-xl lg:text-2xl font-serif font-normal text-white leading-tight">
+                      {event.title}
+                    </h3>
+                  </div>
                 </motion.div>
               ))
             ) : (
