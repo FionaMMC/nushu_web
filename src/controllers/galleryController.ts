@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import express, { Request, Response } from 'express';
 import { GalleryImage, IGalleryImage } from '../models/Gallery.js';
 import { uploadToS3, deleteFromS3, generateThumbnail } from '../config/storage.js';
 import { Types } from 'mongoose';
@@ -172,7 +172,25 @@ export const getImageById = async (req: Request, res: Response): Promise<void> =
 export const uploadImage = async (req: Request, res: Response): Promise<void> => {
   let s3Key: string | undefined;
   try {
-    if (!req.file) {
+    // Support raw binary uploads (e.g., Vercel Blob handleUploadUrl) in addition to multipart
+    const rawFile = (!req.file && Buffer.isBuffer(req.body))
+      ? {
+          buffer: req.body as Buffer,
+          originalname: (req.headers['x-file-name'] as string) || 'upload',
+          mimetype: req.headers['content-type'] || 'application/octet-stream',
+          size: (req.body as Buffer).length,
+          fieldname: 'file',
+          stream: undefined as any,
+          destination: '',
+          encoding: '7bit',
+          filename: '',
+          path: '',
+        } as express.Multer.File
+      : null;
+
+    const file = req.file || rawFile;
+
+    if (!file) {
       res.status(400).json({
         success: false,
         message: 'No image file provided'
@@ -180,34 +198,36 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
       return;
     }
     
-    const { title, description, alt, category = 'general', priority = 0, eventId } = req.body;
-    
-    if (!title || !alt) {
-      res.status(400).json({
-        success: false,
-        message: 'Title and alt text are required'
-      });
-      return;
-    }
+    const {
+      title,
+      description,
+      alt,
+      category = 'general',
+      priority = 0,
+      eventId
+    } = req.body;
+
+    const safeTitle = (title || file.originalname || 'Untitled').toString().trim();
+    const safeAlt = (alt || safeTitle || 'Image').toString().trim();
     
     // Upload to S3
-    const { url: imageUrl, key } = await uploadToS3(req.file, 'gallery');
+    const { url: imageUrl, key } = await uploadToS3(file, 'gallery');
     s3Key = key;
     const thumbnailUrl = generateThumbnail(imageUrl);
 
     // Create gallery image record
     const galleryImage = new GalleryImage({
-      title,
+      title: safeTitle,
       description,
       imageUrl,
       thumbnailUrl,
-      alt,
+      alt: safeAlt,
       category,
       blobUrl: imageUrl, // Use imageUrl as blobUrl for compatibility
       pathname: s3Key, // Use s3Key as pathname for compatibility
       s3Key,
-      fileSize: req.file.size,
-      mimeType: req.file.mimetype,
+      fileSize: file.size,
+      mimeType: file.mimetype,
       priority: parseInt(priority) || 0,
       eventId: eventId || undefined
     });
@@ -217,7 +237,13 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
     res.status(201).json({
       success: true,
       message: 'Image uploaded successfully',
-      data: { image: savedImage }
+      data: { image: savedImage },
+      // These fields align with @vercel/blob/client expectations
+      url: imageUrl,
+      downloadUrl: imageUrl,
+      pathname: s3Key,
+      contentType: file.mimetype,
+      size: file.size
     });
   } catch (error: any) {
     console.error('Error uploading image:', error);

@@ -72,8 +72,11 @@ export const verifyCredentials = async (username: string, password: string): Pro
 export const authenticateAdmin = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
+    const tokenFromHeader = authHeader && authHeader.startsWith('Bearer ') ? authHeader.substring(7) : undefined;
+    const tokenFromQuery = typeof req.query.token === 'string' ? req.query.token : undefined;
+    const token = tokenFromHeader || tokenFromQuery;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
       res.status(401).json({
         success: false,
         message: 'Access token is required'
@@ -81,7 +84,6 @@ export const authenticateAdmin = (req: Request, res: Response, next: NextFunctio
       return;
     }
     
-    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     const decoded = verifyToken(token);
     
     // Check if user has admin role
