@@ -164,7 +164,7 @@ const EventForm: React.FC<EventFormProps> = ({ event, onSave, onCancel, loading 
 
         const blob = await upload(selectedFile.name, selectedFile, {
           access: 'public',
-          handleUploadUrl: `/api/events/upload?token=${encodeURIComponent(token)}`,
+          handleUploadUrl: `/api/gallery/upload?token=${encodeURIComponent(token)}`,
         });
 
         posterImageUrl = blob.url;

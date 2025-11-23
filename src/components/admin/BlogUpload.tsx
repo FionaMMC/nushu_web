@@ -46,7 +46,7 @@ const BlogUpload: React.FC<BlogUploadProps> = ({ onSuccess, onCancel }) => {
       try {
         const response = await fetch('/api/web-events?limit=100');
         const data = await response.json();
-        setEvents(data.events || []);
+        setEvents(data.data?.events || []);
       } catch (error) {
         console.error('Error fetching events:', error);
       } finally {
