@@ -81,8 +81,10 @@ export default function Home() {
   const t = translations[lang];
   const { events = [] } = useUpcomingEvents(10);
 
-  // Filter only current events
-  const currentEvents = events.filter(event => event.status === 'current').slice(0, 3);
+  // Get both current and past events (limit to 3)
+  const displayEvents = events.filter(event =>
+    event.status === 'current' || event.status === 'past'
+  ).slice(0, 3);
 
   const heroPhotos = [
     '/WechatIMG1020.jpg',
@@ -239,8 +241,8 @@ export default function Home() {
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {currentEvents.length > 0 ? (
-              currentEvents.map((event, index) => (
+            {displayEvents.length > 0 ? (
+              displayEvents.map((event, index) => (
                 <motion.div
                   key={event._id}
                   initial={{ opacity: 0, y: 20 }}
@@ -266,8 +268,10 @@ export default function Home() {
 
                   {/* Status Badge */}
                   <div className="absolute top-4 left-4 right-4">
-                    <span className="inline-block px-3 py-1 text-xs font-medium uppercase tracking-wide bg-nushu-terracotta text-white shadow-lg">
-                      Current
+                    <span className={`inline-block px-3 py-1 text-xs font-medium uppercase tracking-wide text-white shadow-lg ${
+                      event.status === 'past' ? 'bg-nushu-sage' : 'bg-nushu-terracotta'
+                    }`}>
+                      {event.status === 'past' ? 'Past' : 'Current'}
                     </span>
                   </div>
 
