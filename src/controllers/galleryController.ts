@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { GalleryImage, IGalleryImage } from '../models/Gallery.js';
 import { uploadToS3, deleteFromS3, generateThumbnail } from '../config/storage.js';
 import { Types } from 'mongoose';
@@ -185,7 +185,7 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
           encoding: '7bit',
           filename: '',
           path: '',
-        } as express.Multer.File
+        } as Express.Multer.File
       : null;
 
     const file = req.file || rawFile;
@@ -392,7 +392,7 @@ export const deleteImage = async (req: Request, res: Response): Promise<void> =>
 };
 
 // Get available categories
-export const getCategories = async (req: Request, res: Response): Promise<void> => {
+export const getCategories = async (_req: Request, res: Response): Promise<void> => {
   try {
     const categories = await GalleryImage.distinct('category', { isActive: true });
     
@@ -411,7 +411,7 @@ export const getCategories = async (req: Request, res: Response): Promise<void> 
 };
 
 // Get gallery statistics (admin only)
-export const getGalleryStats = async (req: Request, res: Response): Promise<void> => {
+export const getGalleryStats = async (_req: Request, res: Response): Promise<void> => {
   try {
     const [
       totalImages,

@@ -220,7 +220,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           console.log('=== POST /gallery - Start ===');
           console.log('Request body:', req.body);
 
-          const { title, description, alt, category, priority, imageUrl, pathname, fileSize, mimeType } = req.body;
+          const { title, description, alt, category, priority, imageUrl, pathname, fileSize, mimeType, eventId } = req.body;
 
           if (!title || !alt || !imageUrl || !pathname) {
             return res.status(400).json({
@@ -237,6 +237,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
             thumbnailUrl: imageUrl, // Use same URL for thumbnail
             alt: alt.trim(),
             category: category || 'general',
+            eventId: eventId || undefined,
             blobUrl: imageUrl,
             pathname,
             fileSize: fileSize || 0,

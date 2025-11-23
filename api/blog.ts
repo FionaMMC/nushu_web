@@ -277,6 +277,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
             imageAlt,
             category,
             tags,
+            eventId,
             isPublished,
             priority
           } = req.body;
@@ -302,6 +303,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
             imageAlt: imageAlt?.trim() || '',
             category: category || 'general',
             tags: tags || [],
+            eventId: eventId || undefined,
             isPublished: isPublished !== undefined ? isPublished : true,
             priority: priority !== undefined ? Number(priority) : 0
           });

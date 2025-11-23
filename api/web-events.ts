@@ -291,6 +291,9 @@ async function handler(req: VercelRequest, res: VercelResponse) {
             blurb: eventData.blurb.trim(),
             status: eventData.status || 'current',
             registrationLink: eventData.registrationLink || '',
+            posterImageUrl: eventData.posterImageUrl || '',
+            posterBlobUrl: eventData.posterBlobUrl || '',
+            posterPathname: eventData.posterPathname || '',
             priority: eventData.priority !== undefined ? Number(eventData.priority) : 0,
             isActive: eventData.isActive !== undefined ? eventData.isActive : true
           });
@@ -350,7 +353,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
             });
           }
 
-          const allowedUpdates = ['title', 'date', 'time', 'venue', 'tags', 'blurb', 'status', 'registrationLink', 'isActive', 'priority'];
+          const allowedUpdates = ['title', 'date', 'time', 'venue', 'tags', 'blurb', 'status', 'registrationLink', 'posterImageUrl', 'posterBlobUrl', 'posterPathname', 'isActive', 'priority'];
           const updates: any = {};
 
           Object.keys(eventData).forEach(key => {
