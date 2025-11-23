@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Upload, Image, X, FileText, Tag, User, Calendar, Save } from 'lucide-react';
 import { upload } from '@vercel/blob/client';
-import { blogApi, authStorage } from '../../services/api';
+import { blogApi, authStorage, Event } from '../../services/api';
 
 interface BlogUploadProps {
   onSuccess: () => void;
@@ -13,6 +13,8 @@ const BlogUpload: React.FC<BlogUploadProps> = ({ onSuccess, onCancel }) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     author: '',
@@ -23,7 +25,8 @@ const BlogUpload: React.FC<BlogUploadProps> = ({ onSuccess, onCancel }) => {
     category: 'general',
     tags: '',
     priority: 0,
-    isPublished: true
+    isPublished: true,
+    eventId: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -35,6 +38,24 @@ const BlogUpload: React.FC<BlogUploadProps> = ({ onSuccess, onCancel }) => {
     { value: 'news', label: 'News' },
     { value: 'community', label: 'Community' }
   ];
+
+  // Fetch events on component mount
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoadingEvents(true);
+      try {
+        const response = await fetch('/api/web-events?limit=100');
+        const data = await response.json();
+        setEvents(data.events || []);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -166,7 +187,8 @@ const BlogUpload: React.FC<BlogUploadProps> = ({ onSuccess, onCancel }) => {
         category: formData.category,
         tags: tags.length > 0 ? tags : undefined,
         isPublished: formData.isPublished,
-        priority: Number(formData.priority)
+        priority: Number(formData.priority),
+        eventId: formData.eventId || undefined
       }, token);
 
       console.log('Blog post created successfully!');
@@ -352,6 +374,29 @@ const BlogUpload: React.FC<BlogUploadProps> = ({ onSuccess, onCancel }) => {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Associated Event */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-nushu-sage mb-2">
+              <Calendar className="w-4 h-4" />
+              Associated Event (Optional)
+            </label>
+            <select
+              name="eventId"
+              value={formData.eventId}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 border border-nushu-sage/20 rounded-lg focus:ring-2 focus:ring-nushu-terracotta focus:border-nushu-terracotta"
+              disabled={loadingEvents}
+            >
+              <option value="">No event association</option>
+              {events.map(event => (
+                <option key={event._id} value={event._id}>
+                  {event.title} - {event.date}
+                </option>
+              ))}
+            </select>
+            {loadingEvents && <p className="text-nushu-sage/60 text-xs mt-1">Loading events...</p>}
           </div>
 
           {/* Priority */}

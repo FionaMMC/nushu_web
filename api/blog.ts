@@ -17,6 +17,7 @@ interface IBlogPost extends mongoose.Document {
   imageAlt?: string;
   category?: string;
   tags?: string[];
+  eventId?: string;
   isPublished: boolean;
   priority: number;
   createdAt: Date;
@@ -83,6 +84,10 @@ const BlogPostSchema = new mongoose.Schema<IBlogPost>({
     type: String,
     trim: true
   }],
+  eventId: {
+    type: String,
+    trim: true
+  },
   isPublished: {
     type: Boolean,
     default: true
@@ -173,6 +178,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
           // Get all blog posts with filters
           const {
             category,
+            eventId,
             published = 'true',
             limit = '50',
             page = '1'
@@ -201,6 +207,9 @@ async function handler(req: VercelRequest, res: VercelResponse) {
 
           if (category && category !== 'all') {
             filters.category = category;
+          }
+          if (eventId) {
+            filters.eventId = eventId;
           }
 
           const limitNum = Math.min(parseInt(limit as string) || 50, 100);

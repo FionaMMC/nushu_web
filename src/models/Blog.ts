@@ -14,6 +14,7 @@ export interface IBlogPost extends Document {
   imageAlt?: string;
   category?: string;
   tags?: string[];
+  eventId?: string;
   isPublished: boolean;
   priority: number;
   createdAt: Date;
@@ -81,6 +82,10 @@ const BlogPostSchema = new Schema<IBlogPost>(
       type: String,
       trim: true
     }],
+    eventId: {
+      type: String,
+      trim: true
+    },
     isPublished: {
       type: Boolean,
       default: true

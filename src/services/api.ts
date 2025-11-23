@@ -44,6 +44,9 @@ export interface Event {
   priority: number;
   isActive: boolean;
   registrationLink?: string;
+  posterImageUrl?: string;
+  posterBlobUrl?: string;
+  posterPathname?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -58,6 +61,7 @@ export interface GalleryImage {
   thumbnailUrl?: string;
   alt: string;
   category: string;
+  eventId?: string;
   blobUrl: string; // Vercel Blob URL
   pathname: string; // Vercel Blob pathname for deletion
   fileSize: number;
@@ -86,6 +90,7 @@ export interface BlogPost {
   imageAlt?: string;
   category?: string;
   tags?: string[];
+  eventId?: string;
   isPublished: boolean;
   priority: number;
   createdAt: string;

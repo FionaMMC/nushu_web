@@ -10,6 +10,9 @@ export interface IWebEvent extends Document {
   blurb: string;
   status: 'current' | 'past';
   registrationLink?: string;
+  posterImageUrl?: string;
+  posterBlobUrl?: string;
+  posterPathname?: string;
   createdAt: Date;
   updatedAt: Date;
   isActive: boolean;
@@ -65,6 +68,18 @@ const WebEventSchema = new Schema<IWebEvent>({
     type: String,
     trim: true,
     default: ''
+  },
+  posterImageUrl: {
+    type: String,
+    trim: true
+  },
+  posterBlobUrl: {
+    type: String,
+    trim: true
+  },
+  posterPathname: {
+    type: String,
+    trim: true
   },
   isActive: {
     type: Boolean,

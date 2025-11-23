@@ -8,6 +8,7 @@ export interface IGalleryImage extends Document {
   thumbnailUrl?: string;
   alt: string;
   category?: string;
+  eventId?: string;
   blobUrl: string;
   pathname: string;
   fileSize: number;
@@ -68,6 +69,10 @@ const GalleryImageSchema = new Schema<IGalleryImage>({
       message: 'Invalid category'
     },
     default: 'general'
+  },
+  eventId: {
+    type: String,
+    trim: true
   },
   blobUrl: {
     type: String,

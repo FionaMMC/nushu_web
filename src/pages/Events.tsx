@@ -4,6 +4,7 @@ import { Calendar, MapPin, Loader2, AlertCircle, Mail } from 'lucide-react';
 import Layout from '../components/layout/Layout';
 import { useUpcomingEvents } from '../hooks/useApi';
 import { Event as ApiEvent } from '../services/api';
+import { navigateTo } from '../utils/navigation';
 
 const translations = {
   en: {
@@ -75,88 +76,188 @@ function EventCard({ event, lang }: { event: ApiEvent; lang: 'en' | 'zh' }) {
     }
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent navigation if clicking on registration link
+    if ((e.target as HTMLElement).closest('a[href]')) {
+      return;
+    }
+    navigateTo(`/events/${event._id}`);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      className="group relative bg-white border border-nushu-sage/10 overflow-hidden hover:shadow-lg transition-all duration-300"
+      onClick={handleCardClick}
+      className="group relative bg-white border border-nushu-sage/10 overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer"
     >
       {/* Status indicator */}
       <div
-        className={`absolute top-0 left-0 w-full h-1 ${
+        className={`absolute top-0 left-0 w-full h-1 z-10 ${
           event.status === 'current' ? 'bg-nushu-terracotta' : 'bg-nushu-sage'
         }`}
       />
 
-      <div className="p-8">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-3">
+      {/* Poster Image Container */}
+      {event.posterImageUrl ? (
+        <div className="relative h-80 overflow-hidden">
+          {/* Poster Image */}
+          <div className="absolute inset-0">
+            <img
+              src={event.posterImageUrl}
+              alt={event.title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+          </div>
+
+          {/* Hover Overlay with Details */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileHover={{ opacity: 1 }}
+            className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/80 to-black/60 p-8 flex flex-col justify-end transition-opacity duration-300"
+          >
+            {/* Status Badge */}
+            <div className="mb-4">
               <span
                 className={`px-3 py-1 text-xs font-medium uppercase tracking-wide ${
                   event.status === 'current'
-                    ? 'bg-nushu-terracotta/10 text-nushu-terracotta'
-                    : 'bg-nushu-sage/10 text-nushu-sage'
+                    ? 'bg-nushu-terracotta text-white'
+                    : 'bg-nushu-sage text-white'
                 }`}
               >
                 {t.status[event.status]}
               </span>
             </div>
-            <h3 className="text-xl lg:text-2xl font-serif font-normal text-nushu-sage leading-tight group-hover:text-nushu-terracotta transition-colors">
+
+            {/* Title */}
+            <h3 className="text-xl lg:text-2xl font-serif font-normal text-white leading-tight mb-4">
               {event.title}
             </h3>
-          </div>
-        </div>
 
-        {/* Event details */}
-        <div className="space-y-4 mb-6">
-          <div className="flex items-center gap-4 text-nushu-sage/80">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span className="font-medium">{formatDate(event.date)}</span>
+            {/* Event details */}
+            <div className="space-y-3 mb-4">
+              <div className="flex items-center gap-4 text-white/90 text-sm">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  <span className="font-medium">{formatDate(event.date)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-1 bg-white/60 rounded-full" />
+                  <span>{event.time}</span>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 text-white/90 text-sm">
+                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <span>{event.venue}</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-1 bg-nushu-sage/40 rounded-full" />
-              <span>{event.time}</span>
+
+            {/* Blurb */}
+            <p className="text-white/90 leading-relaxed mb-4 line-clamp-3 text-sm">
+              {event.blurb}
+            </p>
+
+            {/* Tags */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {event.tags.slice(0, 3).map((tag: string) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-3 py-1 text-xs font-medium bg-white/20 text-white border border-white/30 backdrop-blur-sm"
+                >
+                  {tag}
+                </span>
+              ))}
             </div>
-          </div>
 
-          <div className="flex items-start gap-2 text-nushu-sage/80">
-            <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <span className="text-sm">{event.venue}</span>
-          </div>
-        </div>
-
-        <p className="text-nushu-sage/90 leading-relaxed mb-6">{event.blurb}</p>
-
-        {/* Tags and registration */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex flex-wrap gap-2">
-            {event.tags.map((tag: string) => (
-              <span
-                key={tag}
-                className="inline-flex items-center px-3 py-1 text-xs font-medium bg-nushu-cream text-nushu-sage border border-nushu-sage/20"
+            {/* Registration Link */}
+            {event.registrationLink && event.status === 'current' && (
+              <a
+                href={event.registrationLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-nushu-terracotta text-white text-sm font-medium hover:bg-nushu-terracotta/90 transition-all duration-300 hover:scale-105 w-fit"
               >
-                {tag}
-              </span>
-            ))}
+                <span>{t.register}</span>
+                <span className="text-xs">→</span>
+              </a>
+            )}
+          </motion.div>
+        </div>
+      ) : (
+        // Fallback for events without poster
+        <div className="p-8">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-3">
+                <span
+                  className={`px-3 py-1 text-xs font-medium uppercase tracking-wide ${
+                    event.status === 'current'
+                      ? 'bg-nushu-terracotta/10 text-nushu-terracotta'
+                      : 'bg-nushu-sage/10 text-nushu-sage'
+                  }`}
+                >
+                  {t.status[event.status]}
+                </span>
+              </div>
+              <h3 className="text-xl lg:text-2xl font-serif font-normal text-nushu-sage leading-tight group-hover:text-nushu-terracotta transition-colors">
+                {event.title}
+              </h3>
+            </div>
           </div>
 
-          {event.registrationLink && event.status === 'current' && (
-            <a
-              href={event.registrationLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-nushu-sage text-white text-sm font-medium hover:bg-nushu-sage/90 transition-all duration-300 hover:scale-105"
-            >
-              <span>{t.register}</span>
-              <span className="text-xs">→</span>
-            </a>
-          )}
+          {/* Event details */}
+          <div className="space-y-4 mb-6">
+            <div className="flex items-center gap-4 text-nushu-sage/80">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span className="font-medium">{formatDate(event.date)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-1 bg-nushu-sage/40 rounded-full" />
+                <span>{event.time}</span>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2 text-nushu-sage/80">
+              <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span className="text-sm">{event.venue}</span>
+            </div>
+          </div>
+
+          <p className="text-nushu-sage/90 leading-relaxed mb-6">{event.blurb}</p>
+
+          {/* Tags and registration */}
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex flex-wrap gap-2">
+              {event.tags.map((tag: string) => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-3 py-1 text-xs font-medium bg-nushu-cream text-nushu-sage border border-nushu-sage/20"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+
+            {event.registrationLink && event.status === 'current' && (
+              <a
+                href={event.registrationLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-nushu-sage text-white text-sm font-medium hover:bg-nushu-sage/90 transition-all duration-300 hover:scale-105"
+              >
+                <span>{t.register}</span>
+                <span className="text-xs">→</span>
+              </a>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 }

@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
-import { Upload, Image, X, FileText, Tag, Camera, Save } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Upload, Image, X, FileText, Tag, Camera, Save, Calendar } from 'lucide-react';
 import { upload } from '@vercel/blob/client';
-import { galleryApi, authStorage } from '../../services/api';
+import { galleryApi, authStorage, Event } from '../../services/api';
 
 interface GalleryUploadProps {
   onSuccess: () => void;
@@ -13,12 +13,15 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ onSuccess, onCancel }) =>
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     alt: '',
     category: 'general',
-    priority: 0
+    priority: 0,
+    eventId: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -31,6 +34,24 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ onSuccess, onCancel }) =>
     { value: 'historical', label: 'Historical' },
     { value: 'artwork', label: 'Artwork' }
   ];
+
+  // Fetch events on component mount
+  useEffect(() => {
+    const fetchEvents = async () => {
+      setLoadingEvents(true);
+      try {
+        const response = await fetch('/api/web-events?limit=100');
+        const data = await response.json();
+        setEvents(data.events || []);
+      } catch (error) {
+        console.error('Error fetching events:', error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -145,7 +166,8 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ onSuccess, onCancel }) =>
         imageUrl: blob.url,
         pathname: blob.pathname,
         fileSize: selectedFile.size,
-        mimeType: selectedFile.type
+        mimeType: selectedFile.type,
+        eventId: formData.eventId || undefined
       }, token);
 
       console.log('Image uploaded successfully!');
@@ -319,6 +341,29 @@ const GalleryUpload: React.FC<GalleryUploadProps> = ({ onSuccess, onCancel }) =>
             <p className="text-nushu-sage/60 text-xs mt-1">
               Brief description for screen readers and SEO
             </p>
+          </div>
+
+          {/* Event Association */}
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-nushu-sage mb-2">
+              <Calendar className="w-4 h-4" />
+              Associated Event (Optional)
+            </label>
+            <select
+              name="eventId"
+              value={formData.eventId}
+              onChange={handleInputChange}
+              className="w-full px-4 py-3 border border-nushu-sage/20 rounded-lg focus:ring-2 focus:ring-nushu-terracotta focus:border-nushu-terracotta"
+              disabled={loadingEvents}
+            >
+              <option value="">No event association</option>
+              {events.map(event => (
+                <option key={event._id} value={event._id}>
+                  {event.title} - {event.date}
+                </option>
+              ))}
+            </select>
+            {loadingEvents && <p className="text-nushu-sage/60 text-xs mt-1">Loading events...</p>}
           </div>
 
           {/* Priority */}

@@ -12,6 +12,9 @@ interface IWebEvent extends mongoose.Document {
   blurb: string;
   status: 'current' | 'past';
   registrationLink?: string;
+  posterImageUrl?: string;
+  posterBlobUrl?: string;
+  posterPathname?: string;
   priority: number;
   isActive: boolean;
   createdAt: Date;
@@ -67,6 +70,18 @@ const WebEventSchema = new mongoose.Schema<IWebEvent>({
     type: String,
     trim: true,
     default: ''
+  },
+  posterImageUrl: {
+    type: String,
+    trim: true
+  },
+  posterBlobUrl: {
+    type: String,
+    trim: true
+  },
+  posterPathname: {
+    type: String,
+    trim: true
   },
   isActive: {
     type: Boolean,

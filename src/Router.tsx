@@ -3,6 +3,7 @@ import AdminApp from './components/admin/AdminApp';
 import Home from './pages/Home';
 import About from './pages/About';
 import Events from './pages/Events';
+import EventDetail from './pages/EventDetail';
 import Blog from './pages/Blog';
 import BlogDetail from './pages/BlogDetail';
 import Gallery from './pages/Gallery';
@@ -36,6 +37,10 @@ const Router: React.FC = () => {
 
   if (currentPath === '/events') {
     return <Events />;
+  }
+
+  if (currentPath.startsWith('/events/')) {
+    return <EventDetail />;
   }
 
   if (currentPath === '/blog') {

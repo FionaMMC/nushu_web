@@ -11,6 +11,7 @@ interface IGalleryImage extends mongoose.Document {
   thumbnailUrl?: string;
   alt: string;
   category?: string;
+  eventId?: string;
   blobUrl: string;
   pathname: string;
   fileSize: number;
@@ -56,6 +57,10 @@ const GalleryImageSchema = new mongoose.Schema<IGalleryImage>({
     maxlength: [100, 'Category cannot exceed 100 characters'],
     enum: ['workshop', 'calligraphy', 'events', 'community', 'historical', 'artwork', 'general'],
     default: 'general'
+  },
+  eventId: {
+    type: String,
+    trim: true
   },
   blobUrl: {
     type: String,
@@ -154,6 +159,7 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         // Get all images with filters
         const {
           category,
+          eventId,
           limit = '50',
           page = '1'
         } = query;
@@ -161,6 +167,9 @@ async function handler(req: VercelRequest, res: VercelResponse) {
         const filters: any = { isActive: true };
         if (category && category !== 'all') {
           filters.category = category;
+        }
+        if (eventId) {
+          filters.eventId = eventId;
         }
 
         const limitNum = Math.min(parseInt(limit as string) || 50, 100);
