@@ -4,6 +4,7 @@ import {
   getImagesByCategory,
   getImageById,
   uploadImage,
+  createImageMetadata,
   updateImage,
   deleteImage,
   getCategories,
@@ -22,6 +23,7 @@ router.get('/category/:category', getImagesByCategory);
 router.get('/:id', getImageById);
 
 // Protected routes - require admin authentication
+router.post('/', authenticateAdmin, createImageMetadata); // For Vercel Blob metadata
 router.post('/upload', authenticateAdmin, upload.single('image'), uploadImage);
 router.put('/:id', authenticateAdmin, updateImage);
 router.delete('/:id', authenticateAdmin, deleteImage);

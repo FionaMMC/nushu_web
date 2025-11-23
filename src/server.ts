@@ -10,6 +10,7 @@ import galleryRoutes from './api/routes/gallery.js';
 import adminRoutes from './api/routes/admin.js';
 import contactsRoutes from './api/routes/contacts.js';
 import webEventsRoutes from './api/routes/webEvents.js';
+import blogRoutes from './api/routes/blog.js';
 
 // Load environment variables
 dotenv.config();
@@ -51,6 +52,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/web-events', webEventsRoutes);
 app.use('/api/gallery', galleryRoutes);
+app.use('/api/blog', blogRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/contacts', contactsRoutes);
 

@@ -388,7 +388,7 @@ export const galleryApi = {
 
   // Delete image (admin only)
   delete: async (id: string, permanent: boolean = false, token: string): Promise<void> => {
-    await apiRequest(`/gallery?imageId=${id}`, {
+    await apiRequest(`/gallery/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`

@@ -90,7 +90,7 @@ export const createWebEvent = async (req: Request, res: Response) => {
     console.log('Request body type:', typeof req.body);
     console.log('Request body keys:', Object.keys(req.body));
 
-    const { title, date, time, venue, tags, blurb, status, registrationLink, isActive, priority } = req.body;
+    const { title, date, time, venue, tags, blurb, status, registrationLink, posterImageUrl, posterBlobUrl, posterPathname, isActive, priority } = req.body;
 
     // Validation
     if (!title || !date || !time || !venue || !blurb) {
@@ -111,6 +111,9 @@ export const createWebEvent = async (req: Request, res: Response) => {
       blurb: blurb.trim(),
       status: status || 'current',
       registrationLink: registrationLink || '',
+      posterImageUrl: posterImageUrl || '',
+      posterBlobUrl: posterBlobUrl || '',
+      posterPathname: posterPathname || '',
       isActive: isActive !== undefined ? isActive : true,
       priority: priority !== undefined ? Number(priority) : 0
     };
@@ -155,7 +158,7 @@ export const updateWebEvent = async (req: Request, res: Response) => {
       });
     }
 
-    const allowedUpdates = ['title', 'date', 'time', 'venue', 'tags', 'blurb', 'status', 'registrationLink', 'isActive', 'priority'];
+    const allowedUpdates = ['title', 'date', 'time', 'venue', 'tags', 'blurb', 'status', 'registrationLink', 'posterImageUrl', 'posterBlobUrl', 'posterPathname', 'isActive', 'priority'];
     const updates: any = {};
 
     Object.keys(req.body).forEach(key => {

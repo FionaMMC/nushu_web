@@ -11,6 +11,7 @@ export interface IGalleryImage extends Document {
   eventId?: string;
   blobUrl: string;
   pathname: string;
+  s3Key?: string;
   fileSize: number;
   mimeType: string;
   width?: number;
@@ -71,6 +72,10 @@ const GalleryImageSchema = new Schema<IGalleryImage>({
     default: 'general'
   },
   eventId: {
+    type: String,
+    trim: true
+  },
+  s3Key: {
     type: String,
     trim: true
   },

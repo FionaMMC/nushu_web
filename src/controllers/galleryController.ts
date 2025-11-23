@@ -9,36 +9,44 @@ interface CreateGalleryImageRequest {
   description?: string;
   alt: string;
   category?: string;
+  eventId?: string;
   priority?: number;
 }
 
 interface UpdateGalleryImageRequest extends Partial<CreateGalleryImageRequest> {
   isActive?: boolean;
+  eventId?: string;
 }
 
 // Get all gallery images
 export const getAllImages = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { 
-      category, 
-      limit = '20', 
+    const {
+      category,
+      eventId,
+      limit = '20',
       page = '1',
       sort = 'recent',
-      featured 
+      featured
     } = req.query;
-    
+
     const pageNumber = Math.max(1, parseInt(page as string));
     const limitNumber = Math.min(100, Math.max(1, parseInt(limit as string)));
     const skip = (pageNumber - 1) * limitNumber;
-    
+
     let query: any = { isActive: true };
     let sortQuery: any;
-    
+
     // Filter by category
     if (category && category !== 'all') {
       query.category = category;
     }
-    
+
+    // Filter by event
+    if (eventId) {
+      query.eventId = eventId;
+    }
+
     // Filter featured images
     if (featured === 'true') {
       query.priority = { $gte: 50 };
@@ -162,6 +170,7 @@ export const getImageById = async (req: Request, res: Response): Promise<void> =
 
 // Upload and create new gallery image (admin only)
 export const uploadImage = async (req: Request, res: Response): Promise<void> => {
+  let s3Key: string | undefined;
   try {
     if (!req.file) {
       res.status(400).json({
@@ -171,7 +180,7 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
       return;
     }
     
-    const { title, description, alt, category = 'general', priority = 0 } = req.body;
+    const { title, description, alt, category = 'general', priority = 0, eventId } = req.body;
     
     if (!title || !alt) {
       res.status(400).json({
@@ -182,9 +191,10 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
     }
     
     // Upload to S3
-    const { url: imageUrl, key: s3Key } = await uploadToS3(req.file, 'gallery');
+    const { url: imageUrl, key } = await uploadToS3(req.file, 'gallery');
+    s3Key = key;
     const thumbnailUrl = generateThumbnail(imageUrl);
-    
+
     // Create gallery image record
     const galleryImage = new GalleryImage({
       title,
@@ -193,10 +203,13 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
       thumbnailUrl,
       alt,
       category,
+      blobUrl: imageUrl, // Use imageUrl as blobUrl for compatibility
+      pathname: s3Key, // Use s3Key as pathname for compatibility
       s3Key,
       fileSize: req.file.size,
       mimeType: req.file.mimetype,
-      priority: parseInt(priority) || 0
+      priority: parseInt(priority) || 0,
+      eventId: eventId || undefined
     });
     
     const savedImage = await galleryImage.save();
@@ -210,9 +223,9 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
     console.error('Error uploading image:', error);
     
     // Clean up uploaded file if database save fails
-    if (req.body.s3Key) {
+    if (s3Key) {
       try {
-        await deleteFromS3(req.body.s3Key);
+        await deleteFromS3(s3Key);
       } catch (deleteError) {
         console.error('Error cleaning up failed upload:', deleteError);
       }
@@ -313,16 +326,21 @@ export const deleteImage = async (req: Request, res: Response): Promise<void> =>
     }
     
     if (permanent === 'true') {
-      // Permanently delete from database and S3
-      try {
-        await deleteFromS3(image.s3Key);
-      } catch (s3Error) {
-        console.error('Error deleting from S3:', s3Error);
-        // Continue with database deletion even if S3 fails
+      // Permanently delete from database and S3/Blob
+      // Only attempt S3 deletion if s3Key exists (S3-uploaded images)
+      // Vercel Blob images don't have s3Key and are managed separately
+      const imageDoc = image as any; // Type assertion to access s3Key
+      if (imageDoc.s3Key) {
+        try {
+          await deleteFromS3(imageDoc.s3Key);
+        } catch (s3Error) {
+          console.error('Error deleting from S3:', s3Error);
+          // Continue with database deletion even if S3 fails
+        }
       }
-      
+
       await GalleryImage.findByIdAndDelete(id);
-      
+
       res.status(200).json({
         success: true,
         message: 'Image permanently deleted'
@@ -456,13 +474,80 @@ export const bulkUpdateImages = async (req: Request, res: Response): Promise<voi
   }
 };
 
+// Create image metadata for Vercel Blob uploads (admin only)
+export const createImageMetadata = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const {
+      title,
+      description,
+      alt,
+      category = 'general',
+      priority = 0,
+      imageUrl,
+      pathname,
+      fileSize,
+      mimeType,
+      eventId
+    } = req.body;
+
+    // Validation
+    if (!title || !alt || !imageUrl || !pathname) {
+      res.status(400).json({
+        success: false,
+        message: 'Title, alt text, imageUrl, and pathname are required'
+      });
+      return;
+    }
+
+    // Create gallery image record
+    const galleryImage = new GalleryImage({
+      title,
+      description,
+      imageUrl,
+      alt,
+      category,
+      blobUrl: imageUrl,
+      pathname,
+      fileSize: fileSize || 0,
+      mimeType: mimeType || 'image/jpeg',
+      priority: parseInt(priority) || 0,
+      eventId: eventId || undefined
+    });
+
+    const savedImage = await galleryImage.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Image metadata saved successfully',
+      data: { image: savedImage }
+    });
+  } catch (error: any) {
+    console.error('Error saving image metadata:', error);
+
+    if (error?.name === 'ValidationError') {
+      res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors: error.errors
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save image metadata',
+      error: process.env.NODE_ENV === 'development' ? error : undefined
+    });
+  }
+};
+
 // Helper function to format file size
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
