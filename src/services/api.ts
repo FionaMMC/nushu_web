@@ -245,6 +245,9 @@ export const eventsApi = {
       blurb: String(eventData.blurb).trim(),
       status: eventData.status || 'current',
       registrationLink: eventData.registrationLink || '',
+      posterImageUrl: eventData.posterImageUrl || '',
+      posterBlobUrl: eventData.posterBlobUrl || '',
+      posterPathname: eventData.posterPathname || '',
       priority: Number(eventData.priority) || 0,
       isActive: eventData.isActive !== false
     };
